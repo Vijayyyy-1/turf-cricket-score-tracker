@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MatchSetupForm from './components/MatchSetupForm';
 import LiveScoring from './components/LiveScoring';
 import type { Match, MatchSetup } from './types/match';
@@ -10,6 +10,31 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Load match from localStorage on mount
+  useEffect(() => {
+    const savedMatchId = localStorage.getItem('activeMatchId');
+    if (savedMatchId) {
+      loadMatch(savedMatchId);
+    }
+  }, []);
+
+  const loadMatch = async (id: string) => {
+    setLoading(true);
+    try {
+      const match = await api.getMatch(id);
+      if (match.status !== 'completed') {
+        setCurrentMatch(match);
+      } else {
+        localStorage.removeItem('activeMatchId');
+      }
+    } catch (err) {
+      console.error('Error loading match:', err);
+      localStorage.removeItem('activeMatchId');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleMatchCreate = async (setup: MatchSetup) => {
     setLoading(true);
     setError(null);
@@ -17,6 +42,7 @@ function App() {
     try {
       const match = await api.createMatch(setup);
       setCurrentMatch(match);
+      localStorage.setItem('activeMatchId', match._id);
     } catch (err) {
       console.error('Error creating match:', err);
       setError('Failed to create match. Please make sure the server is running.');
@@ -27,11 +53,15 @@ function App() {
 
   const handleMatchUpdate = (match: Match) => {
     setCurrentMatch(match);
+    if (match.status === 'completed') {
+      localStorage.removeItem('activeMatchId');
+    }
   };
 
   const handleEndMatch = () => {
     setCurrentMatch(null);
     setError(null);
+    localStorage.removeItem('activeMatchId');
   };
 
   return (
