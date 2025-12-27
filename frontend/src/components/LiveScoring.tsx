@@ -20,7 +20,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     // 2nd Innings Statistics
     const isSecondInnings = match.currentInnings === 2;
     const target = isSecondInnings ? match.innings[0].runs + 1 : null;
-    const runsNeeded = target !== null ? target - currentInnings.runs : null;
+    const runsNeeded = target !== null ? Math.max(0, target - currentInnings.runs) : null;
     const totalBalls = match.oversPerInnings * 6;
     const ballsBowled = (currentInnings.overs * 6) + currentInnings.balls;
     const ballsRemaining = totalBalls - ballsBowled;

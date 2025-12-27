@@ -112,8 +112,22 @@ router.post('/matches/:id/ball', async (req, res) => {
         // Check if innings should end
         const totalOvers = currentInnings.overs + (currentInnings.balls / 6);
         const playersPerTeam = match.playersPerTeam;
+        let shouldEndInnings = false;
 
+        // Second innings specific end condition: target reached
+        if (match.currentInnings === 2) {
+            const target = match.innings[0].runs + 1;
+            if (currentInnings.runs >= target) {
+                shouldEndInnings = true;
+            }
+        }
+
+        // Standard end conditions: overs completed or all out
         if (totalOvers >= match.oversPerInnings || currentInnings.wickets >= playersPerTeam - 1) {
+            shouldEndInnings = true;
+        }
+
+        if (shouldEndInnings) {
             // End current innings
             if (match.currentInnings === 1) {
                 // Start second innings
@@ -139,17 +153,17 @@ router.post('/matches/:id/ball', async (req, res) => {
                 const innings1 = match.innings[0];
                 const innings2 = match.innings[1];
 
-                if (innings1.runs > innings2.runs) {
-                    match.result = {
-                        winner: innings1.battingTeam,
-                        margin: `${innings1.runs - innings2.runs} runs`,
-                        isDraw: false
-                    };
-                } else if (innings2.runs > innings1.runs) {
+                if (innings2.runs > innings1.runs) {
                     const wicketsRemaining = playersPerTeam - 1 - innings2.wickets;
                     match.result = {
                         winner: innings2.battingTeam,
                         margin: `${wicketsRemaining} wickets`,
+                        isDraw: false
+                    };
+                } else if (innings1.runs > innings2.runs) {
+                    match.result = {
+                        winner: innings1.battingTeam,
+                        margin: `${innings1.runs - innings2.runs} runs`,
                         isDraw: false
                     };
                 } else {
