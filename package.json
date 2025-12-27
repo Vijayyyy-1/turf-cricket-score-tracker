@@ -1,0 +1,19 @@
+{
+  "name": "cricket-turf",
+  "version": "1.0.0",
+  "description": "Cricket Scoring Web Application for friendly turf matches",
+  "scripts": {
+    "install:all": "cd frontend && npm install && cd ../backend && npm install",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
+  },
+  "keywords": [
+    "cricket",
+    "scoring",
+    "sports",
+    "mern"
+  ],
+  "author": "",
+  "license": "MIT"
+}
