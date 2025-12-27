@@ -5,12 +5,14 @@ import type { Match, MatchSetup } from './types/match';
 import { api } from './services/api';
 import './App.css';
 
-function App() {
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import MatchView from './components/MatchView';
+
+function Home() {
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load match from localStorage on mount
   useEffect(() => {
     const savedMatchId = localStorage.getItem('activeMatchId');
     if (savedMatchId) {
@@ -65,7 +67,7 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <>
       {error && (
         <div className="error-banner fade-in">
           <span>⚠️ {error}</span>
@@ -76,7 +78,7 @@ function App() {
       {loading && (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
-          <p>Creating match...</p>
+          <p>Processing...</p>
         </div>
       )}
 
@@ -89,7 +91,20 @@ function App() {
           onEndMatch={handleEndMatch}
         />
       )}
-    </div>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <div className="app">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/match/:id" element={<MatchView />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

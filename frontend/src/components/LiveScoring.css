@@ -526,3 +526,31 @@
         font-size: 3.5rem;
     }
 }
+
+/* Share Button & Viewer Message */
+.btn-share {
+    background: hsla(210, 100%, 50%, 0.1);
+    color: #4da3ff;
+    border: 1px solid #4da3ff;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-share:hover {
+    background: #4da3ff;
+    color: white;
+}
+
+.viewer-msg {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+    margin: var(--spacing-md) 0;
+}

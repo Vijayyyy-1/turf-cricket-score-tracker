@@ -5,11 +5,12 @@ import './LiveScoring.css';
 
 interface LiveScoringProps {
     match: Match;
-    onMatchUpdate: (match: Match) => void;
-    onEndMatch: () => void;
+    onMatchUpdate?: (match: Match) => void;
+    onEndMatch?: () => void;
+    readOnly?: boolean;
 }
 
-const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMatch }) => {
+const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMatch, readOnly = false }) => {
     const [loading, setLoading] = useState(false);
     const [selectedRuns, setSelectedRuns] = useState<number | null>(null);
 
@@ -39,7 +40,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                 isNoBall,
                 isWicket,
             });
-            onMatchUpdate(updatedMatch);
+            onMatchUpdate?.(updatedMatch);
         } catch (error) {
             console.error('Error recording ball:', error);
             alert('Failed to record ball. Please try again.');
@@ -58,13 +59,37 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
         setLoading(true);
         try {
             const updatedMatch = await api.undoLastBall(match._id);
-            onMatchUpdate(updatedMatch);
+            onMatchUpdate?.(updatedMatch);
         } catch (error) {
             console.error('Error undoing ball:', error);
             alert('Failed to undo ball. Please try again.');
         } finally {
             setLoading(false);
         }
+    };
+
+    // Auto-refresh for viewers
+    React.useEffect(() => {
+        if (!readOnly || match.status === 'completed') return;
+
+        const interval = setInterval(async () => {
+            try {
+                const updatedMatch = await api.getMatch(match._id);
+                if (JSON.stringify(updatedMatch) !== JSON.stringify(match)) {
+                    onMatchUpdate?.(updatedMatch);
+                }
+            } catch (err) {
+                console.error('Failed to auto-refresh match:', err);
+            }
+        }, 5000); // Refresh every 5 seconds
+
+        return () => clearInterval(interval);
+    }, [readOnly, match._id, match.status, onMatchUpdate]);
+
+    const handleShare = () => {
+        const shareUrl = `${window.location.origin}/match/${match._id}`;
+        navigator.clipboard.writeText(shareUrl);
+        alert('Shareable link copied to clipboard!');
     };
 
     // Helper function to organize balls by overs
@@ -136,12 +161,18 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                     </div>
 
                     <div className="result-actions">
-                        <button onClick={onEndMatch} className="btn btn-primary btn-lg">
-                            🏏 New Match
-                        </button>
-                        <button onClick={undoLastBall} disabled={loading} className="btn btn-warning btn-lg">
-                            ↩️ Undo Last Ball
-                        </button>
+                        {!readOnly ? (
+                            <>
+                                <button onClick={onEndMatch} className="btn btn-primary btn-lg">
+                                    🏏 New Match
+                                </button>
+                                <button onClick={undoLastBall} disabled={loading} className="btn btn-warning btn-lg">
+                                    ↩️ Undo Last Ball
+                                </button>
+                            </>
+                        ) : (
+                            <p className="viewer-msg">Match finished. View summary above.</p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -159,6 +190,11 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                     <div className="innings-badge">
                         Innings {match.currentInnings}
                     </div>
+                    {!readOnly && (
+                        <button onClick={handleShare} className="btn-share" title="Copy share link">
+                            🔗 Share Score
+                        </button>
+                    )}
                 </div>
 
                 <div className="score-display">
@@ -213,54 +249,56 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                 </div>
             </div>
 
-            <div className="scoring-controls card">
-                <h3 className="controls-title">Record Ball</h3>
+            {!readOnly && (
+                <div className="scoring-controls card">
+                    <h3 className="controls-title">Record Ball</h3>
 
-                <div className="runs-buttons">
-                    {[0, 1, 2, 3, 4, 6].map((runs) => (
+                    <div className="runs-buttons">
+                        {[0, 1, 2, 3, 4, 6].map((runs) => (
+                            <button
+                                key={runs}
+                                onClick={() => recordBall(runs)}
+                                disabled={loading}
+                                className={`btn-run ${selectedRuns === runs ? 'btn-run-active' : ''} ${runs === 4 || runs === 6 ? 'btn-run-boundary' : ''
+                                    }`}
+                            >
+                                {runs}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="extras-buttons">
                         <button
-                            key={runs}
-                            onClick={() => recordBall(runs)}
+                            onClick={() => recordBall(0, true, false, false)}
                             disabled={loading}
-                            className={`btn-run ${selectedRuns === runs ? 'btn-run-active' : ''} ${runs === 4 || runs === 6 ? 'btn-run-boundary' : ''
-                                }`}
+                            className="btn btn-secondary"
                         >
-                            {runs}
+                            Wide
                         </button>
-                    ))}
+                        <button
+                            onClick={() => recordBall(0, false, true, false)}
+                            disabled={loading}
+                            className="btn btn-secondary"
+                        >
+                            No Ball
+                        </button>
+                        <button
+                            onClick={() => recordBall(0, false, false, true)}
+                            disabled={loading}
+                            className="btn btn-danger"
+                        >
+                            Wicket
+                        </button>
+                        <button
+                            onClick={undoLastBall}
+                            disabled={loading || currentInnings.ballByBall.length === 0}
+                            className="btn btn-warning"
+                        >
+                            Undo
+                        </button>
+                    </div>
                 </div>
-
-                <div className="extras-buttons">
-                    <button
-                        onClick={() => recordBall(0, true, false, false)}
-                        disabled={loading}
-                        className="btn btn-secondary"
-                    >
-                        Wide
-                    </button>
-                    <button
-                        onClick={() => recordBall(0, false, true, false)}
-                        disabled={loading}
-                        className="btn btn-secondary"
-                    >
-                        No Ball
-                    </button>
-                    <button
-                        onClick={() => recordBall(0, false, false, true)}
-                        disabled={loading}
-                        className="btn btn-danger"
-                    >
-                        Wicket
-                    </button>
-                    <button
-                        onClick={undoLastBall}
-                        disabled={loading || currentInnings.ballByBall.length === 0}
-                        className="btn btn-warning"
-                    >
-                        Undo
-                    </button>
-                </div>
-            </div>
+            )}
 
             {currentInnings.ballByBall.length > 0 && (
                 <div className="ball-history card">
