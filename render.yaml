@@ -9,29 +9,23 @@ services:
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
-        value: 18.0.0
+        value: 18
       - key: MONGODB_URI
-        sync: false # Set this in Render dashboard
+        sync: false
       - key: PORT
         value: 10000
 
-  # Frontend Static Site
-  - type: static
+  # Frontend Static Site (React + Vite)
+  - type: static_site
     name: cricket-turf-app
-    env: static
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     publishPath: dist
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://cricket-turf-api.onrender.com/api # Replace with your actual backend URL if it differs
-
+        value: https://cricket-turf-api.onrender.com
