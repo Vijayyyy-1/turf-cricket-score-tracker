@@ -88,6 +88,49 @@
     color: var(--text-primary);
 }
 
+/* Chase Info (2nd Innings) */
+.chase-info-container {
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-md);
+    background: hsla(142, 76%, 36%, 0.1);
+    border: 1px dashed var(--primary-green);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.target-badge {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.chase-details {
+    text-align: center;
+}
+
+.needed-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.rrr-text {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.highlight {
+    color: var(--accent-orange-light);
+    font-weight: 800;
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

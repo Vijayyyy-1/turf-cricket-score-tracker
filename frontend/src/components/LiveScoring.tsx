@@ -17,6 +17,17 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     const totalOvers = currentInnings.overs + (currentInnings.balls / 6);
     const runRate = totalOvers > 0 ? (currentInnings.runs / totalOvers).toFixed(2) : '0.00';
 
+    // 2nd Innings Statistics
+    const isSecondInnings = match.currentInnings === 2;
+    const target = isSecondInnings ? match.innings[0].runs + 1 : null;
+    const runsNeeded = target !== null ? target - currentInnings.runs : null;
+    const totalBalls = match.oversPerInnings * 6;
+    const ballsBowled = (currentInnings.overs * 6) + currentInnings.balls;
+    const ballsRemaining = totalBalls - ballsBowled;
+    const requiredRunRate = (runsNeeded !== null && ballsRemaining > 0)
+        ? ((runsNeeded / ballsRemaining) * 6).toFixed(2)
+        : (runsNeeded !== null && runsNeeded <= 0 ? '0.00' : 'N/A');
+
     const recordBall = async (runs: number, isWide = false, isNoBall = false, isWicket = false) => {
         setLoading(true);
         setSelectedRuns(runs);
@@ -163,6 +174,22 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                         </span>
                     </div>
                 </div>
+
+                {isSecondInnings && target !== null && (
+                    <div className="chase-info-container fade-in">
+                        <div className="target-badge">
+                            Target: <span className="highlight">{target}</span>
+                        </div>
+                        <div className="chase-details">
+                            <p className="needed-text">
+                                Need <span className="highlight">{runsNeeded}</span> runs in <span className="highlight">{ballsRemaining}</span> balls
+                            </p>
+                            <p className="rrr-text">
+                                Required RR: <span className="highlight">{requiredRunRate}</span>
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <div className="stats-grid">
                     <div className="stat-item">
