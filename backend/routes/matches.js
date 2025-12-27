@@ -169,6 +169,74 @@ router.post('/matches/:id/ball', async (req, res) => {
     }
 });
 
+// Undo last ball
+router.post('/matches/:id/undo', async (req, res) => {
+    try {
+        const match = await Match.findById(req.params.id);
+        if (!match) {
+            return res.status(404).json({ error: 'Match not found' });
+        }
+
+        // If match was completed, bring it back to in_progress
+        if (match.status === 'completed') {
+            match.status = 'in_progress';
+            match.result = undefined;
+        }
+
+        let currentInnings = match.innings[match.currentInnings - 1];
+
+        // If current innings has no balls and we're in 2nd innings, go back to 1st innings
+        if (currentInnings.ballByBall.length === 0 && match.currentInnings === 2) {
+            match.currentInnings = 1;
+            match.battingTeam = match.teams[0];
+            match.bowlingTeam = match.teams[1];
+            // Remove the empty 2nd innings
+            match.innings.pop();
+            currentInnings = match.innings[0];
+        }
+
+        // Check if there are any balls to undo
+        if (currentInnings.ballByBall.length === 0) {
+            return res.status(400).json({ error: 'No balls to undo' });
+        }
+
+        // Get the last ball
+        const lastBall = currentInnings.ballByBall.pop();
+
+        // Reverse the runs
+        if (lastBall.isWide || lastBall.isNoBall) {
+            currentInnings.runs -= 1 + (lastBall.runs || 0);
+            if (lastBall.isWide) currentInnings.extras.wides -= 1;
+            if (lastBall.isNoBall) currentInnings.extras.noBalls -= 1;
+        } else {
+            currentInnings.runs -= lastBall.runs || 0;
+        }
+
+        // Reverse wickets
+        if (lastBall.isWicket) {
+            currentInnings.wickets -= 1;
+        }
+
+        // Reverse balls and overs (only for legal deliveries)
+        if (!lastBall.isWide && !lastBall.isNoBall) {
+            if (currentInnings.balls === 0) {
+                // We're at the start of an over, go back to previous over
+                if (currentInnings.overs > 0) {
+                    currentInnings.overs -= 1;
+                    currentInnings.balls = 5;
+                }
+            } else {
+                currentInnings.balls -= 1;
+            }
+        }
+
+        await match.save();
+        res.json(match);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Delete a match
 router.delete('/matches/:id', async (req, res) => {
     try {

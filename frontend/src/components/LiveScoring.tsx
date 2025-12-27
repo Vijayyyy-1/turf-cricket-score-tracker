@@ -38,6 +38,56 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
         }
     };
 
+    const undoLastBall = async () => {
+        if (currentInnings.ballByBall.length === 0) {
+            alert('No balls to undo!');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const updatedMatch = await api.undoLastBall(match._id);
+            onMatchUpdate(updatedMatch);
+        } catch (error) {
+            console.error('Error undoing ball:', error);
+            alert('Failed to undo ball. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Helper function to organize balls by overs
+    const getBallsByOvers = () => {
+        const balls = currentInnings.ballByBall;
+        const overs: any[][] = [];
+        let currentOver: any[] = [];
+        let legalBallsInOver = 0;
+
+        balls.forEach((ball) => {
+            currentOver.push(ball);
+
+            // Count legal balls (not wide or no ball)
+            if (!ball.isWide && !ball.isNoBall) {
+                legalBallsInOver++;
+
+                // Complete over after 6 legal balls
+                if (legalBallsInOver === 6) {
+                    overs.push(currentOver);
+                    currentOver = [];
+                    legalBallsInOver = 0;
+                }
+            }
+        });
+
+        // Add incomplete over if it has balls
+        if (currentOver.length > 0) {
+            overs.push(currentOver);
+        }
+
+        return overs;
+    };
+
+
     if (match.status === 'completed') {
         return (
             <div className="match-result-container fade-in">
@@ -74,9 +124,14 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                         ))}
                     </div>
 
-                    <button onClick={onEndMatch} className="btn btn-primary btn-lg">
-                        🏏 New Match
-                    </button>
+                    <div className="result-actions">
+                        <button onClick={onEndMatch} className="btn btn-primary btn-lg">
+                            🏏 New Match
+                        </button>
+                        <button onClick={undoLastBall} disabled={loading} className="btn btn-warning btn-lg">
+                            ↩️ Undo Last Ball
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -170,22 +225,51 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                     >
                         Wicket
                     </button>
+                    <button
+                        onClick={undoLastBall}
+                        disabled={loading || currentInnings.ballByBall.length === 0}
+                        className="btn btn-warning"
+                    >
+                        Undo
+                    </button>
                 </div>
             </div>
 
             {currentInnings.ballByBall.length > 0 && (
                 <div className="ball-history card">
-                    <h3 className="history-title">Recent Balls</h3>
-                    <div className="balls-list">
-                        {currentInnings.ballByBall.slice(-12).reverse().map((ball) => (
-                            <div
-                                key={ball.ballNumber}
-                                className={`ball-item ${ball.isWicket ? 'ball-wicket' : ''} ${ball.runs === 4 || ball.runs === 6 ? 'ball-boundary' : ''
-                                    }`}
-                            >
-                                {ball.isWicket ? 'W' : ball.isWide ? 'WD' : ball.isNoBall ? 'NB' : ball.runs}
-                            </div>
-                        ))}
+                    <h3 className="history-title">Match History (Over-wise)</h3>
+                    <div className="overs-history">
+                        {getBallsByOvers().reverse().map((overBalls, index, array) => {
+                            const overNum = array.length - index;
+                            const overRuns = overBalls.reduce((sum, ball) => {
+                                let runs = ball.runs || 0;
+                                if (ball.isWide || ball.isNoBall) runs += 1;
+                                return sum + runs;
+                            }, 0);
+                            const overWickets = overBalls.filter(b => b.isWicket).length;
+
+                            return (
+                                <div key={overNum} className="over-row">
+                                    <div className="over-info">
+                                        <span className="over-number">Over {overNum}</span>
+                                        <span className="over-summary">
+                                            {overRuns} runs, {overWickets} {overWickets === 1 ? 'wicket' : 'wickets'}
+                                        </span>
+                                    </div>
+                                    <div className="over-balls">
+                                        {overBalls.map((ball) => (
+                                            <div
+                                                key={ball.ballNumber}
+                                                className={`ball-item small ${ball.isWicket ? 'ball-wicket' : ''} ${(ball.runs === 4 || ball.runs === 6) && !ball.isWide && !ball.isNoBall ? 'ball-boundary' : ''
+                                                    } ${ball.isWide || ball.isNoBall ? 'ball-extra' : ''}`}
+                                            >
+                                                {ball.isWicket ? 'W' : ball.isWide ? 'WD' : ball.isNoBall ? 'NB' : ball.runs}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}

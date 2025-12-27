@@ -41,6 +41,18 @@ export const api = {
         return response.json();
     },
 
+    // Undo last ball
+    undoLastBall: async (matchId: string) => {
+        const response = await fetch(`${API_BASE_URL}/matches/${matchId}/undo`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) throw new Error('Failed to undo ball');
+        return response.json();
+    },
+
     // Delete a match
     deleteMatch: async (id: string) => {
         const response = await fetch(`${API_BASE_URL}/matches/${id}`, {

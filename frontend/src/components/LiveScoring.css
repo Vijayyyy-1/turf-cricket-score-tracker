@@ -179,7 +179,7 @@
 
 .extras-buttons {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--spacing-md);
 }
 
@@ -225,6 +225,57 @@
     background: var(--primary-green);
     color: white;
     border-color: var(--primary-green-light);
+}
+
+/* Overs History */
+.overs-history {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.over-row {
+    padding: var(--spacing-md);
+    background: var(--bg-darker);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.over-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.over-number {
+    font-weight: 700;
+    color: var(--primary-green-light);
+}
+
+.over-summary {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.over-balls {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.ball-item.small {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+}
+
+.ball-extra {
+    background: var(--bg-card);
+    color: var(--warning);
+    border-color: var(--warning);
 }
 
 /* Match Result */
@@ -289,6 +340,13 @@
     color: var(--text-primary);
 }
 
+.result-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-2xl);
+}
+
 .innings-summary {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -337,7 +395,7 @@
     }
 
     .extras-buttons {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .innings-summary {
@@ -346,6 +404,10 @@
 
     .result-winner {
         font-size: 2rem;
+    }
+
+    .result-actions {
+        flex-direction: column;
     }
 
     .trophy-icon {
