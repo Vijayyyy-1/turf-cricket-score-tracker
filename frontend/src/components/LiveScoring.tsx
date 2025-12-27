@@ -15,7 +15,6 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
 
     const currentInnings = match.innings[match.currentInnings - 1];
     const totalOvers = currentInnings.overs + (currentInnings.balls / 6);
-    const playersPerTeam = match.players[currentInnings.battingTeam].length;
     const runRate = totalOvers > 0 ? (currentInnings.runs / totalOvers).toFixed(2) : '0.00';
 
     const recordBall = async (runs: number, isWide = false, isNoBall = false, isWicket = false) => {
@@ -178,7 +177,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                 <div className="ball-history card">
                     <h3 className="history-title">Recent Balls</h3>
                     <div className="balls-list">
-                        {currentInnings.ballByBall.slice(-12).reverse().map((ball, idx) => (
+                        {currentInnings.ballByBall.slice(-12).reverse().map((ball) => (
                             <div
                                 key={ball.ballNumber}
                                 className={`ball-item ${ball.isWicket ? 'ball-wicket' : ''} ${ball.runs === 4 || ball.runs === 6 ? 'ball-boundary' : ''

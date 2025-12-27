@@ -10,16 +10,17 @@ const matchSchema = new mongoose.Schema({
     type: [String],
     required: true,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         return v.length === 2;
       },
       message: 'Must have exactly 2 teams'
     }
   },
-  players: {
-    type: Map,
-    of: [String],
-    required: true
+  playersPerTeam: {
+    type: Number,
+    required: true,
+    min: 2,
+    max: 11
   },
   currentInnings: {
     type: Number,

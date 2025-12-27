@@ -6,17 +6,17 @@ const router = express.Router();
 // Create a new match
 router.post('/matches', async (req, res) => {
     try {
-        const { oversPerInnings, teams, players } = req.body;
+        const { oversPerInnings, teams, playersPerTeam } = req.body;
 
         // Validate input
-        if (!oversPerInnings || !teams || teams.length !== 2 || !players) {
+        if (!oversPerInnings || !teams || teams.length !== 2 || !playersPerTeam) {
             return res.status(400).json({ error: 'Invalid match data' });
         }
 
         const match = new Match({
             oversPerInnings,
             teams,
-            players: new Map(Object.entries(players)),
+            playersPerTeam,
             battingTeam: teams[0],
             bowlingTeam: teams[1],
             status: 'in_progress',
@@ -111,7 +111,7 @@ router.post('/matches/:id/ball', async (req, res) => {
 
         // Check if innings should end
         const totalOvers = currentInnings.overs + (currentInnings.balls / 6);
-        const playersPerTeam = match.players.get(currentInnings.battingTeam).length;
+        const playersPerTeam = match.playersPerTeam;
 
         if (totalOvers >= match.oversPerInnings || currentInnings.wickets >= playersPerTeam - 1) {
             // End current innings

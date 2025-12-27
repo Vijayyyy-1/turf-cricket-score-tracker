@@ -7,35 +7,52 @@ interface MatchSetupFormProps {
 }
 
 const MatchSetupForm: React.FC<MatchSetupFormProps> = ({ onMatchCreate }) => {
-    const [oversPerInnings, setOversPerInnings] = useState(5);
+    const [oversPerInnings, setOversPerInnings] = useState<string>('5');
     const [team1Name, setTeam1Name] = useState('');
     const [team2Name, setTeam2Name] = useState('');
-    const [team1Players, setTeam1Players] = useState('');
-    const [team2Players, setTeam2Players] = useState('');
+    const [playersPerTeam, setPlayersPerTeam] = useState<string>('11');
+
+    const handleOversChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        // Allow empty string or valid numbers
+        if (value === '' || (!isNaN(Number(value)) && Number(value) >= 0)) {
+            setOversPerInnings(value);
+        }
+    };
+
+    const handlePlayersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        // Allow empty string or valid numbers
+        if (value === '' || (!isNaN(Number(value)) && Number(value) >= 0)) {
+            setPlayersPerTeam(value);
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!team1Name || !team2Name || !team1Players || !team2Players) {
-            alert('Please fill in all fields');
+        if (!team1Name || !team2Name) {
+            alert('Please enter both team names');
             return;
         }
 
-        const team1PlayerList = team1Players.split(',').map(p => p.trim()).filter(p => p);
-        const team2PlayerList = team2Players.split(',').map(p => p.trim()).filter(p => p);
+        const overs = Number(oversPerInnings);
+        const players = Number(playersPerTeam);
 
-        if (team1PlayerList.length < 2 || team2PlayerList.length < 2) {
-            alert('Each team must have at least 2 players');
+        if (!overs || overs < 1 || overs > 50) {
+            alert('Please enter valid overs (1-50)');
+            return;
+        }
+
+        if (!players || players < 2 || players > 11) {
+            alert('Please enter valid number of players (2-11)');
             return;
         }
 
         const setup: MatchSetup = {
-            oversPerInnings,
+            oversPerInnings: overs,
             teams: [team1Name, team2Name],
-            players: {
-                [team1Name]: team1PlayerList,
-                [team2Name]: team2PlayerList,
-            },
+            playersPerTeam: players,
         };
 
         onMatchCreate(setup);
@@ -56,13 +73,28 @@ const MatchSetupForm: React.FC<MatchSetupFormProps> = ({ onMatchCreate }) => {
                         <label htmlFor="overs" className="form-label">Overs Per Innings</label>
                         <input
                             id="overs"
-                            type="number"
-                            min="1"
-                            max="50"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="e.g., 5, 10, 20"
                             value={oversPerInnings}
-                            onChange={(e) => setOversPerInnings(Number(e.target.value))}
+                            onChange={handleOversChange}
                             className="input"
                         />
+                        <span className="form-hint">Enter 1-50 overs</span>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="players" className="form-label">Players Per Team</label>
+                        <input
+                            id="players"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="e.g., 11"
+                            value={playersPerTeam}
+                            onChange={handlePlayersChange}
+                            className="input"
+                        />
+                        <span className="form-hint">Enter 2-11 players (wickets = players - 1)</span>
                     </div>
 
                     <div className="teams-grid">
@@ -77,19 +109,6 @@ const MatchSetupForm: React.FC<MatchSetupFormProps> = ({ onMatchCreate }) => {
                                     value={team1Name}
                                     onChange={(e) => setTeam1Name(e.target.value)}
                                     className="input"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="team1-players" className="form-label">
-                                    Players (comma separated)
-                                </label>
-                                <textarea
-                                    id="team1-players"
-                                    placeholder="e.g., John, Mike, Sarah, Alex"
-                                    value={team1Players}
-                                    onChange={(e) => setTeam1Players(e.target.value)}
-                                    className="input textarea"
-                                    rows={4}
                                 />
                             </div>
                         </div>
@@ -107,19 +126,6 @@ const MatchSetupForm: React.FC<MatchSetupFormProps> = ({ onMatchCreate }) => {
                                     className="input"
                                 />
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="team2-players" className="form-label">
-                                    Players (comma separated)
-                                </label>
-                                <textarea
-                                    id="team2-players"
-                                    placeholder="e.g., Emma, David, Chris, Lisa"
-                                    value={team2Players}
-                                    onChange={(e) => setTeam2Players(e.target.value)}
-                                    className="input textarea"
-                                    rows={4}
-                                />
-                            </div>
                         </div>
                     </div>
 
@@ -133,3 +139,4 @@ const MatchSetupForm: React.FC<MatchSetupFormProps> = ({ onMatchCreate }) => {
 };
 
 export default MatchSetupForm;
+

@@ -2,7 +2,7 @@ export interface Match {
     _id: string;
     oversPerInnings: number;
     teams: [string, string];
-    players: Record<string, string[]>;
+    playersPerTeam: number;
     currentInnings: number;
     battingTeam: string;
     bowlingTeam: string;
@@ -43,5 +43,5 @@ export interface Ball {
 export interface MatchSetup {
     oversPerInnings: number;
     teams: [string, string];
-    players: Record<string, string[]>;
+    playersPerTeam: number;
 }
