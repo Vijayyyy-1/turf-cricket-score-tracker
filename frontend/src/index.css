@@ -64,7 +64,6 @@ body {
   background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
   color: var(--text-primary);
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
 #root {
@@ -301,5 +300,22 @@ body {
   .btn-lg {
     padding: var(--spacing-md);
     font-size: 1rem;
+  }
+
+  /* Disable hover for touch devices */
+  .btn:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Add touch feedback */
+  .btn:active {
+    transform: scale(0.96) !important;
+    opacity: 0.9;
+  }
+
+  .btn-run:active {
+    transform: scale(0.9) !important;
+    background: var(--bg-card-hover) !important;
   }
 }

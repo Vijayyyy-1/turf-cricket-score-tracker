@@ -97,14 +97,41 @@
 
 @media (max-width: 768px) {
     .match-setup-title {
-        font-size: 2rem;
+        font-size: 1.75rem;
+    }
+
+    .match-setup-subtitle {
+        font-size: 0.9rem;
     }
 
     .teams-grid {
         grid-template-columns: 1fr;
+        gap: var(--spacing-md);
     }
 
     .match-setup-container {
-        padding: var(--spacing-lg) var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-sm);
+        justify-content: flex-start;
+    }
+
+    .card {
+        padding: var(--spacing-md);
+        gap: var(--spacing-lg);
+    }
+
+    .team-section {
+        padding: var(--spacing-md);
+    }
+
+    .input {
+        padding: var(--spacing-sm);
+        font-size: 1.1rem;
+        /* Better for mobile keyboard zoom */
+    }
+
+    .btn-lg {
+        padding: var(--spacing-md);
+        font-size: 1.25rem;
+        height: 60px;
     }
 }

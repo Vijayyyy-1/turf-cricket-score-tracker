@@ -1,22 +1,24 @@
 .live-scoring-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: var(--spacing-xl) var(--spacing-md);
+    padding: var(--spacing-md);
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xl);
+    gap: var(--spacing-md);
 }
 
 /* Scoreboard */
 .scoreboard {
     background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-darker) 100%);
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .scoreboard-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--spacing-xl);
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
 }
 
 .team-info {
@@ -24,10 +26,10 @@
 }
 
 .batting-team {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--primary-green-light);
-    margin-bottom: var(--spacing-xs);
+    margin: 0;
 }
 
 .vs-text {
@@ -46,20 +48,22 @@
 
 .score-display {
     text-align: center;
-    margin-bottom: var(--spacing-xl);
-    padding: var(--spacing-xl) 0;
-    border-bottom: 2px solid var(--border-color);
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
 }
 
 .main-score {
-    font-size: 4rem;
+    font-size: 3rem;
     font-weight: 800;
     line-height: 1;
-    margin-bottom: var(--spacing-md);
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
+    margin: 0;
 }
 
 .runs {
@@ -75,12 +79,11 @@
 }
 
 .overs-display {
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: var(--text-secondary);
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
 }
 
 .overs-value {
@@ -155,29 +158,40 @@
 }
 
 .stat-value {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--text-primary);
+}
+
+.stat-item {
+    padding: var(--spacing-sm);
 }
 
 /* Scoring Controls */
 .scoring-controls {
     background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-card) 100%);
+    padding: var(--spacing-md) !important;
 }
 
 .controls-title {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 600;
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-sm);
     text-align: center;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .runs-buttons {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.btn-run {
+    height: 55px;
+    font-size: 1.5rem;
+    border-width: 2px;
 }
 
 .btn-run {
@@ -222,8 +236,16 @@
 
 .extras-buttons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--spacing-md);
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+}
+
+.extras-buttons .btn {
+    height: 45px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: var(--spacing-xs);
 }
 
 /* Ball History */
@@ -310,9 +332,9 @@
 }
 
 .ball-item.small {
-    width: 36px;
-    height: 36px;
-    font-size: 0.9rem;
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
 }
 
 .ball-extra {
@@ -425,24 +447,65 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .live-scoring-container {
+        padding: var(--spacing-sm);
+        gap: var(--spacing-sm);
+    }
+
+    .scoreboard {
+        margin: 0;
+        width: 100%;
+        border-radius: var(--radius-md);
+    }
+
     .main-score {
-        font-size: 3rem;
+        font-size: 2.2rem;
     }
 
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+    }
+
+    .stat-item {
+        padding: 4px;
+        background: transparent;
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-label {
+        font-size: 0.6rem;
+    }
+
+    .stat-value {
+        font-size: 0.9rem;
     }
 
     .runs-buttons {
-        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
     }
 
     .extras-buttons {
-        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
     }
 
-    .innings-summary {
-        grid-template-columns: 1fr;
+    .btn-run {
+        height: 50px;
+        font-size: 1.3rem;
+    }
+
+    .extras-buttons .btn {
+        height: 40px;
+        font-size: 0.8rem;
+    }
+
+    .card {
+        padding: var(--spacing-sm);
+    }
+
+    /* Result Mobile optimizations */
+    .result-card {
+        padding: var(--spacing-xl) var(--spacing-md);
     }
 
     .result-winner {
@@ -451,9 +514,15 @@
 
     .result-actions {
         flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .innings-summary {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
     }
 
     .trophy-icon {
-        font-size: 4rem;
+        font-size: 3.5rem;
     }
 }
