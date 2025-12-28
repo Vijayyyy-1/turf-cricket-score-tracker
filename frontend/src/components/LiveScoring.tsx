@@ -11,19 +11,20 @@ interface LiveScoringProps {
 }
 
 const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMatch, readOnly = false }) => {
+    const [viewInnings, setViewInnings] = useState<number>(match.currentInnings);
     const [loading, setLoading] = useState(false);
     const [selectedRuns, setSelectedRuns] = useState<number | null>(null);
 
-    const currentInnings = match.innings[match.currentInnings - 1];
-    const totalOvers = currentInnings.overs + (currentInnings.balls / 6);
-    const runRate = totalOvers > 0 ? (currentInnings.runs / totalOvers).toFixed(2) : '0.00';
+    const activeInnings = match.innings[viewInnings - 1] || match.innings[0];
+    const totalOvers = activeInnings.overs + (activeInnings.balls / 6);
+    const runRate = totalOvers > 0 ? (activeInnings.runs / totalOvers).toFixed(2) : '0.00';
 
     // 2nd Innings Statistics
-    const isSecondInnings = match.currentInnings === 2;
-    const target = isSecondInnings ? match.innings[0].runs + 1 : null;
-    const runsNeeded = target !== null ? Math.max(0, target - currentInnings.runs) : null;
+    const isShowingSecondInnings = viewInnings === 2;
+    const target = match.innings[0].runs + 1;
+    const runsNeeded = (target !== null && match.status !== 'completed') ? Math.max(0, target - activeInnings.runs) : null;
     const totalBalls = match.oversPerInnings * 6;
-    const ballsBowled = (currentInnings.overs * 6) + currentInnings.balls;
+    const ballsBowled = (activeInnings.overs * 6) + activeInnings.balls;
     const ballsRemaining = totalBalls - ballsBowled;
     const requiredRunRate = (runsNeeded !== null && ballsRemaining > 0)
         ? ((runsNeeded / ballsRemaining) * 6).toFixed(2)
@@ -41,6 +42,8 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                 isWicket,
             });
             onMatchUpdate?.(updatedMatch);
+            // Always switch to the innings being bowled
+            setViewInnings(updatedMatch.currentInnings);
         } catch (error) {
             console.error('Error recording ball:', error);
             alert('Failed to record ball. Please try again.');
@@ -51,7 +54,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     };
 
     const undoLastBall = async () => {
-        if (currentInnings.ballByBall.length === 0) {
+        if (activeInnings.ballByBall.length === 0 && match.currentInnings === 1) {
             alert('No balls to undo!');
             return;
         }
@@ -60,6 +63,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
         try {
             const updatedMatch = await api.undoLastBall(match._id);
             onMatchUpdate?.(updatedMatch);
+            setViewInnings(updatedMatch.currentInnings);
         } catch (error) {
             console.error('Error undoing ball:', error);
             alert('Failed to undo ball. Please try again.');
@@ -77,6 +81,10 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                 const updatedMatch = await api.getMatch(match._id);
                 if (JSON.stringify(updatedMatch) !== JSON.stringify(match)) {
                     onMatchUpdate?.(updatedMatch);
+                    // Stay on the live innings
+                    if (updatedMatch.status !== 'completed') {
+                        setViewInnings(updatedMatch.currentInnings);
+                    }
                 }
             } catch (err) {
                 console.error('Failed to auto-refresh match:', err);
@@ -94,7 +102,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
 
     // Helper function to organize balls by overs
     const getBallsByOvers = () => {
-        const balls = currentInnings.ballByBall;
+        const balls = activeInnings.ballByBall;
         const overs: any[][] = [];
         let currentOver: any[] = [];
         let legalBallsInOver = 0;
@@ -124,10 +132,11 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     };
 
 
-    if (match.status === 'completed') {
-        return (
-            <div className="match-result-container fade-in">
-                <div className="result-card card">
+    return (
+        <div className="live-scoring-container fade-in">
+            {/* 1. Result Summary (Only if completed) */}
+            {match.status === 'completed' && (
+                <div className="result-card card completed-header">
                     <div className="trophy-icon">🏆</div>
                     <h1 className="result-title">Match Completed!</h1>
 
@@ -146,49 +155,37 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                         </div>
                     )}
 
-                    <div className="innings-summary">
+                    <div className="innings-summary-compact">
                         {match.innings.map((innings, idx) => (
-                            <div key={idx} className="innings-card">
-                                <h3>{innings.battingTeam}</h3>
-                                <p className="innings-score">
-                                    {innings.runs}/{innings.wickets}
-                                </p>
-                                <p className="innings-overs">
-                                    ({innings.overs}.{innings.balls} overs)
-                                </p>
+                            <div key={idx} className="summary-row">
+                                <div className="summary-team">{innings.battingTeam}</div>
+                                <div className="summary-data">
+                                    <span className="summary-score">{innings.runs}/{innings.wickets}</span>
+                                    <span className="summary-overs">({innings.overs}.{innings.balls})</span>
+                                </div>
                             </div>
                         ))}
                     </div>
 
                     <div className="result-actions">
                         {!readOnly ? (
-                            <>
-                                <button onClick={onEndMatch} className="btn btn-primary btn-lg">
-                                    🏏 New Match
-                                </button>
-                                <button onClick={undoLastBall} disabled={loading} className="btn btn-warning btn-lg">
-                                    ↩️ Undo Last Ball
-                                </button>
-                            </>
+                            <button onClick={onEndMatch} className="btn btn-primary btn-lg">
+                                🏏 New Match
+                            </button>
                         ) : (
-                            <p className="viewer-msg">Match finished. View summary above.</p>
+                            <p className="viewer-msg">Summary view only</p>
                         )}
                     </div>
                 </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="live-scoring-container fade-in">
+            )}
             <div className="scoreboard card">
                 <div className="scoreboard-header">
                     <div className="team-info">
-                        <h2 className="batting-team">{currentInnings.battingTeam}</h2>
-                        <p className="vs-text">vs {currentInnings.bowlingTeam}</p>
+                        <h2 className="batting-team">{activeInnings.battingTeam}</h2>
+                        <p className="vs-text">vs {activeInnings.bowlingTeam}</p>
                     </div>
                     <div className="innings-badge">
-                        Innings {match.currentInnings}
+                        Innings {viewInnings}
                     </div>
                     {!readOnly && (
                         <button onClick={handleShare} className="btn-share" title="Copy share link">
@@ -199,19 +196,19 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
 
                 <div className="score-display">
                     <div className="main-score">
-                        <span className="runs">{currentInnings.runs}</span>
+                        <span className="runs">{activeInnings.runs}</span>
                         <span className="separator">/</span>
-                        <span className="wickets">{currentInnings.wickets}</span>
+                        <span className="wickets">{activeInnings.wickets}</span>
                     </div>
                     <div className="overs-display">
                         <span className="overs-label">Overs:</span>
                         <span className="overs-value">
-                            {currentInnings.overs}.{currentInnings.balls} / {match.oversPerInnings}
+                            {activeInnings.overs}.{activeInnings.balls} / {match.oversPerInnings}
                         </span>
                     </div>
                 </div>
 
-                {isSecondInnings && target !== null && (
+                {isShowingSecondInnings && target !== null && (
                     <div className="chase-info-container fade-in">
                         <div className="target-badge">
                             Target: <span className="highlight">{target}</span>
@@ -235,21 +232,40 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                     <div className="stat-item">
                         <span className="stat-label">Extras</span>
                         <span className="stat-value">
-                            {currentInnings.extras.wides + currentInnings.extras.noBalls}
+                            {activeInnings.extras.wides + activeInnings.extras.noBalls}
                         </span>
                     </div>
                     <div className="stat-item">
                         <span className="stat-label">Wides</span>
-                        <span className="stat-value">{currentInnings.extras.wides}</span>
+                        <span className="stat-value">{activeInnings.extras.wides}</span>
                     </div>
                     <div className="stat-item">
                         <span className="stat-label">No Balls</span>
-                        <span className="stat-value">{currentInnings.extras.noBalls}</span>
+                        <span className="stat-value">{activeInnings.extras.noBalls}</span>
                     </div>
                 </div>
             </div>
 
-            {!readOnly && (
+            {/* 3. Innings Selector (If match has 2nd innings or is completed) */}
+            {(match.innings.length > 1 || match.status === 'completed') && (
+                <div className="innings-selector card">
+                    <button
+                        onClick={() => setViewInnings(1)}
+                        className={`btn-innings ${viewInnings === 1 ? 'active' : ''}`}
+                    >
+                        1st Innings
+                    </button>
+                    <button
+                        onClick={() => setViewInnings(2)}
+                        disabled={match.innings.length < 2 && match.status !== 'completed'}
+                        className={`btn-innings ${viewInnings === 2 ? 'active' : ''}`}
+                    >
+                        2nd Innings
+                    </button>
+                </div>
+            )}
+
+            {!readOnly && match.status === 'in_progress' && (
                 <div className="scoring-controls card">
                     <h3 className="controls-title">Record Ball</h3>
 
@@ -291,7 +307,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                         </button>
                         <button
                             onClick={undoLastBall}
-                            disabled={loading || currentInnings.ballByBall.length === 0}
+                            disabled={loading || activeInnings.ballByBall.length === 0}
                             className="btn btn-warning"
                         >
                             Undo
@@ -300,9 +316,9 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                 </div>
             )}
 
-            {currentInnings.ballByBall.length > 0 && (
+            {activeInnings.ballByBall.length > 0 && (
                 <div className="ball-history card">
-                    <h3 className="history-title">Match History (Over-wise)</h3>
+                    <h3 className="history-title">{activeInnings.battingTeam} - Innings History</h3>
                     <div className="overs-history">
                         {getBallsByOvers().reverse().map((overBalls, index, array) => {
                             const overNum = array.length - index;
