@@ -137,6 +137,15 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
             {/* 1. Result Summary (Only if completed) */}
             {match.status === 'completed' && (
                 <div className="result-card card completed-header">
+                    <div className="match-timestamp">
+                        {new Date(match.createdAt).toLocaleString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
+                    </div>
                     <div className="trophy-icon">🏆</div>
                     <h1 className="result-title">Match Completed!</h1>
 
