@@ -93,6 +93,8 @@ router.post('/matches/:id/ball', async (req, res) => {
             if (!player) {
                 player = { name: playerName, runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false };
                 currentInnings.playerStats.push(player);
+                // Re-fetch the player to get the Mongoose reference (with _id added)
+                player = currentInnings.playerStats.find(p => p.name === playerName);
             }
             return player;
         };
@@ -104,12 +106,18 @@ router.post('/matches/:id/ball', async (req, res) => {
             if (!bowler) {
                 bowler = { name: bowlerName, overs: 0, balls: 0, runs: 0, wickets: 0 };
                 currentInnings.bowlerStats.push(bowler);
+                // Re-fetch the bowler to get the Mongoose reference (with _id added)
+                bowler = currentInnings.bowlerStats.find(b => b.name === bowlerName);
             }
             return bowler;
         };
 
-        // Update batsman stats
+        // Update batsman stats - ensure both striker and non-striker are initialized
         const currentBatsman = ensurePlayerStats(currentInnings.striker);
+        // Also ensure non-striker is initialized so they appear in stats table
+        if (currentInnings.nonStriker) {
+            ensurePlayerStats(currentInnings.nonStriker);
+        }
         const currentBowlerStats = currentInnings.currentBowler ? ensureBowlerStats(currentInnings.currentBowler) : null;
 
         // Create ball record
@@ -270,6 +278,9 @@ router.post('/matches/:id/ball', async (req, res) => {
                 }
             }
         }
+
+        // Mark nested arrays as modified for Mongoose
+        match.markModified('innings');
 
         await match.save();
         res.json(match);
