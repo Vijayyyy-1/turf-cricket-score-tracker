@@ -81,10 +81,7 @@ router.post('/matches/:id/ball', async (req, res) => {
         if (nonStriker) currentInnings.nonStriker = nonStriker;
         if (bowler) currentInnings.currentBowler = bowler;
 
-        // Handle new batsman after wicket
-        if (newBatsman && isWicket) {
-            currentInnings.striker = newBatsman;
-        }
+
 
         // Initialize player stats if not exists
         const ensurePlayerStats = (playerName) => {
@@ -210,6 +207,18 @@ router.post('/matches/:id/ball', async (req, res) => {
             currentInnings.nonStriker = temp;
         }
 
+        // Handle new batsman after wicket (moved to end to ensure correct stats attribution)
+        if (newBatsman && isWicket) {
+            // Find who was out (currentBatsman) and replace them in the partnership
+            // Note: currentBatsman is the player who faced the ball (and got out)
+            if (currentInnings.striker === currentBatsman.name) {
+                currentInnings.striker = newBatsman;
+            } else if (currentInnings.nonStriker === currentBatsman.name) {
+                currentInnings.nonStriker = newBatsman;
+            }
+            ensurePlayerStats(newBatsman);
+        }
+
         // Check if innings should end
         const totalOvers = currentInnings.overs + (currentInnings.balls / 6);
         const playersPerTeam = match.playersPerTeam;
@@ -322,6 +331,11 @@ router.post('/matches/:id/undo', async (req, res) => {
 
         // Get the last ball
         const lastBall = currentInnings.ballByBall.pop();
+
+        // Restore the bowler state to the one who bowled this ball
+        if (lastBall.bowlerName) {
+            currentInnings.currentBowler = lastBall.bowlerName;
+        }
 
         // Reverse the runs
         if (lastBall.isWide || lastBall.isNoBall) {
