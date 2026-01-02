@@ -351,6 +351,8 @@ router.post('/matches/:id/undo', async (req, res) => {
             currentInnings.wickets -= 1;
         }
 
+        let shouldRotateBack = false;
+
         // Reverse balls and overs (only for legal deliveries)
         if (!lastBall.isWide && !lastBall.isNoBall) {
             if (currentInnings.balls === 0) {
@@ -358,10 +360,28 @@ router.post('/matches/:id/undo', async (req, res) => {
                 if (currentInnings.overs > 0) {
                     currentInnings.overs -= 1;
                     currentInnings.balls = 5;
+                    shouldRotateBack = true;
                 }
             } else {
                 currentInnings.balls -= 1;
             }
+        }
+
+        // Check for run rotation reversal (odd runs, no extras, no wicket)
+        if (!lastBall.isWide && !lastBall.isNoBall && !lastBall.isWicket && (lastBall.runs || 0) % 2 === 1) {
+            shouldRotateBack = true;
+        }
+
+        // Apply Rotation Reversal
+        if (shouldRotateBack && currentInnings.striker && currentInnings.nonStriker) {
+            const temp = currentInnings.striker;
+            currentInnings.striker = currentInnings.nonStriker;
+            currentInnings.nonStriker = temp;
+        }
+
+        // Restore Wicket Player to Strike (kick out the new batsman)
+        if (lastBall.isWicket && lastBall.batsmanName) {
+            currentInnings.striker = lastBall.batsmanName;
         }
 
         // --- Revert Player Stats ---
