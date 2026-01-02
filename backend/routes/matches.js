@@ -350,6 +350,70 @@ router.post('/matches/:id/undo', async (req, res) => {
             }
         }
 
+        // --- Revert Player Stats ---
+
+        // Revert Batsman Stats
+        if (lastBall.batsmanName) {
+            const batsman = currentInnings.playerStats.find(p => p.name === lastBall.batsmanName);
+            if (batsman) {
+                const totalRuns = lastBall.runs || 0;
+
+                // Reverse runs
+                if (lastBall.isNoBall) {
+                    // In recordBall, runs are added to batsman for no-balls
+                    batsman.runs -= totalRuns;
+                    if (totalRuns === 4) batsman.fours -= 1;
+                    if (totalRuns === 6) batsman.sixes -= 1;
+                } else if (!lastBall.isWide) {
+                    // Legal delivery: runs, balls, boundaries
+                    batsman.runs -= totalRuns;
+                    batsman.balls -= 1;
+                    if (totalRuns === 4) batsman.fours -= 1;
+                    if (totalRuns === 6) batsman.sixes -= 1;
+                }
+
+                // Reverse wickets
+                if (lastBall.isWicket) {
+                    batsman.isOut = false;
+                }
+            }
+        }
+
+        // Revert Bowler Stats
+        if (lastBall.bowlerName) {
+            const bowler = currentInnings.bowlerStats.find(b => b.name === lastBall.bowlerName);
+            if (bowler) {
+                const totalRuns = lastBall.runs || 0;
+
+                // Reverse runs conceded
+                if (lastBall.isWide || lastBall.isNoBall) {
+                    bowler.runs -= (1 + totalRuns);
+                } else {
+                    bowler.runs -= totalRuns;
+                }
+
+                // Reverse wickets
+                if (lastBall.isWicket) {
+                    bowler.wickets -= 1;
+                }
+
+                // Reverse balls/overs
+                if (!lastBall.isWide && !lastBall.isNoBall) {
+                    if (bowler.balls === 0) {
+                        if (bowler.overs > 0) {
+                            bowler.overs -= 1;
+                            bowler.balls = 5;
+                        }
+                    } else {
+                        bowler.balls -= 1;
+                    }
+                }
+            }
+        }
+
+        // Mark nested arrays as modified for Mongoose
+        match.markModified('innings');
+
         await match.save();
         res.json(match);
     } catch (error) {
