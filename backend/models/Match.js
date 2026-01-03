@@ -53,13 +53,33 @@ const matchSchema = new mongoose.Schema({
       wides: { type: Number, default: 0 },
       noBalls: { type: Number, default: 0 }
     },
+    striker: String,
+    nonStriker: String,
+    currentBowler: String,
+    playerStats: [{
+      name: String,
+      runs: { type: Number, default: 0 },
+      balls: { type: Number, default: 0 },
+      fours: { type: Number, default: 0 },
+      sixes: { type: Number, default: 0 },
+      isOut: { type: Boolean, default: false }
+    }],
+    bowlerStats: [{
+      name: String,
+      overs: { type: Number, default: 0 },
+      balls: { type: Number, default: 0 },
+      runs: { type: Number, default: 0 },
+      wickets: { type: Number, default: 0 }
+    }],
     ballByBall: [{
       ballNumber: Number,
       runs: Number,
       isWide: Boolean,
       isNoBall: Boolean,
       isWicket: Boolean,
-      timestamp: { type: Date, default: Date.now }
+      timestamp: { type: Date, default: Date.now },
+      batsmanName: String,
+      bowlerName: String
     }]
   }],
   result: {

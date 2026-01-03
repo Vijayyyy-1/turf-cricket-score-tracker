@@ -16,6 +16,23 @@ export interface Match {
     createdAt: string;
 }
 
+export interface PlayerStats {
+    name: string;
+    runs: number;
+    balls: number;
+    fours: number;
+    sixes: number;
+    isOut: boolean;
+}
+
+export interface BowlerStats {
+    name: string;
+    overs: number;
+    balls: number;
+    runs: number;
+    wickets: number;
+}
+
 export interface Innings {
     inningsNumber: number;
     battingTeam: string;
@@ -29,6 +46,11 @@ export interface Innings {
         noBalls: number;
     };
     ballByBall: Ball[];
+    striker?: string;
+    nonStriker?: string;
+    currentBowler?: string;
+    playerStats: PlayerStats[];
+    bowlerStats: BowlerStats[];
 }
 
 export interface Ball {
@@ -38,6 +60,8 @@ export interface Ball {
     isNoBall: boolean;
     isWicket: boolean;
     timestamp: string;
+    batsmanName?: string;
+    bowlerName?: string;
 }
 
 export interface MatchSetup {
