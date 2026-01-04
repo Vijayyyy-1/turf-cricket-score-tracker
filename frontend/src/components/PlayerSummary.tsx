@@ -344,9 +344,9 @@ function PlayerSummary() {
                         <h1>Player Statistics</h1>
                         <p className="subtitle">Complete career records for all players</p>
                     </div>
-                    <button onClick={() => navigate('/')} className="home-btn">
+                    {/* <button onClick={() => navigate('/')} className="home-btn">
                         <span className="home-icon">🏠</span> Home
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* Top Performers Section */}
