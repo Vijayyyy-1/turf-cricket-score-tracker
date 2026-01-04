@@ -349,6 +349,97 @@ function PlayerSummary() {
                     </button>
                 </div>
 
+                {/* Top Performers Section */}
+                {sortedPlayers.length > 0 && (
+                    <div className="top-performers-section">
+                        {/* Top 3 Batsmen */}
+                        <div className="leaderboard-card">
+                            <div className="leaderboard-header">
+                                <span className="leaderboard-icon">🏏</span>
+                                <h2>Top Batsmen</h2>
+                            </div>
+                            <div className="podium">
+                                {[...players]
+                                    .sort((a, b) => b.batting.runs - a.batting.runs)
+                                    .slice(0, 3)
+                                    .map((player, index) => {
+                                        const position = index + 1;
+                                        const medals = ['🥇', '🥈', '🥉'];
+                                        const podiumHeights = ['podium-1st', 'podium-2nd', 'podium-3rd'];
+
+                                        return (
+                                            <div
+                                                key={player.name}
+                                                className={`podium-item ${podiumHeights[index]}`}
+                                                onClick={() => handlePlayerClick(player.name)}
+                                            >
+                                                <div className="medal">{medals[index]}</div>
+                                                <div className="player-avatar-podium">
+                                                    {player.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="player-info-podium">
+                                                    <div className="player-name-podium">{player.name}</div>
+                                                    <div className="player-stat-podium">
+                                                        <span className="stat-value-large">{player.batting.runs}</span>
+                                                        <span className="stat-label-small">runs</span>
+                                                    </div>
+                                                    <div className="player-substats">
+                                                        <span>Avg: {player.batting.average}</span>
+                                                        <span>SR: {player.batting.strikeRate}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="rank-badge">#{position}</div>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        </div>
+
+                        {/* Top 3 Bowlers */}
+                        <div className="leaderboard-card">
+                            <div className="leaderboard-header">
+                                <span className="leaderboard-icon">⚾</span>
+                                <h2>Top Bowlers</h2>
+                            </div>
+                            <div className="podium">
+                                {[...players]
+                                    .sort((a, b) => b.bowling.wickets - a.bowling.wickets)
+                                    .slice(0, 3)
+                                    .map((player, index) => {
+                                        const position = index + 1;
+                                        const medals = ['🥇', '🥈', '🥉'];
+                                        const podiumHeights = ['podium-1st', 'podium-2nd', 'podium-3rd'];
+
+                                        return (
+                                            <div
+                                                key={player.name}
+                                                className={`podium-item ${podiumHeights[index]}`}
+                                                onClick={() => handlePlayerClick(player.name)}
+                                            >
+                                                <div className="medal">{medals[index]}</div>
+                                                <div className="player-avatar-podium">
+                                                    {player.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="player-info-podium">
+                                                    <div className="player-name-podium">{player.name}</div>
+                                                    <div className="player-stat-podium">
+                                                        <span className="stat-value-large">{player.bowling.wickets}</span>
+                                                        <span className="stat-label-small">wickets</span>
+                                                    </div>
+                                                    <div className="player-substats">
+                                                        <span>Avg: {player.bowling.average}</span>
+                                                        <span>Econ: {player.bowling.economy}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="rank-badge">#{position}</div>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="controls-bar">
                     <div className="search-box">
                         <span className="search-icon">🔍</span>
