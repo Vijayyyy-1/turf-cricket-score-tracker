@@ -845,15 +845,62 @@
 
     .players-table-container {
         overflow-x: auto;
+        border-radius: 12px;
     }
 
     .players-table {
-        min-width: 800px;
+        min-width: 100%;
+        font-size: 0.75rem;
+    }
+
+    .players-table th {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+
+    .players-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .rank-col {
+        width: 35px;
+        padding: 0.5rem 0.25rem;
+        font-size: 0.7rem;
+    }
+
+    .name-col {
+        min-width: 120px;
+        max-width: 150px;
+    }
+
+    .player-name-cell {
+        gap: 0.5rem;
+    }
+
+    .player-avatar-small {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9rem;
+    }
+
+    .player-name-cell span {
+        font-size: 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .highlight-stat {
+        font-size: 0.8rem;
+        font-weight: 700;
     }
 
     .player-header {
         flex-direction: column;
         text-align: center;
+        padding: 1.5rem;
     }
 
     .player-info h1 {
@@ -881,6 +928,95 @@
 
     .top-performers-section {
         grid-template-columns: 1fr;
+    }
+
+    .leaderboard-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .leaderboard-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .leaderboard-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .leaderboard-icon {
+        font-size: 1.5rem;
+    }
+
+    .podium {
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+    }
+
+    .podium-item {
+        padding: 1rem 0.75rem;
+    }
+
+    .medal {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .player-avatar-podium {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .player-name-podium {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value-large {
+        font-size: 1.5rem;
+    }
+
+    .stat-label-small {
+        font-size: 0.75rem;
+    }
+
+    .player-substats {
+        font-size: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .rank-badge {
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+    }
+
+    .top-performers-section {
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Compact table columns for mobile */
+    .players-table th:nth-child(n+6),
+    .players-table td:nth-child(n+6) {
+        display: none;
+    }
+
+    /* Show only essential columns on mobile */
+    .players-table th:nth-child(1),
+    .players-table th:nth-child(2),
+    .players-table th:nth-child(3),
+    .players-table th:nth-child(4),
+    .players-table th:nth-child(9),
+    .players-table td:nth-child(1),
+    .players-table td:nth-child(2),
+    .players-table td:nth-child(3),
+    .players-table td:nth-child(4),
+    .players-table td:nth-child(9) {
+        display: table-cell;
     }
 }
 
