@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import matchRoutes from './routes/matches.js';
+import playerRoutes from './routes/players.js';
+import adminRoutes from './routes/admin.js';
 
 dotenv.config();
 
@@ -16,6 +18,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api', matchRoutes);
+app.use('/api', playerRoutes);
+app.use('/api', adminRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

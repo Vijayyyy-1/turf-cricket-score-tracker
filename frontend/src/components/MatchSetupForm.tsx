@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { MatchSetup } from '../types/match';
 import './MatchSetupForm.css';
 
@@ -7,6 +8,7 @@ interface MatchSetupFormProps {
 }
 
 const MatchSetupForm: React.FC<MatchSetupFormProps> = ({ onMatchCreate }) => {
+    const navigate = useNavigate();
     const [oversPerInnings, setOversPerInnings] = useState<string>('5');
     const [team1Name, setTeam1Name] = useState('');
     const [team2Name, setTeam2Name] = useState('');
@@ -65,6 +67,14 @@ const MatchSetupForm: React.FC<MatchSetupFormProps> = ({ onMatchCreate }) => {
                     🏏 <span className="gradient-text">Create New Match</span>
                 </h1>
                 <p className="match-setup-subtitle">Set up your cricket match in seconds</p>
+                <button
+                    type="button"
+                    onClick={() => navigate('/playerSummary')}
+                    className="btn btn-secondary player-stats-btn"
+                    style={{ marginTop: '1rem' }}
+                >
+                    📊 View Player Statistics
+                </button>
             </div>
 
             <form onSubmit={handleSubmit} className="match-setup-form">
@@ -139,4 +149,3 @@ const MatchSetupForm: React.FC<MatchSetupFormProps> = ({ onMatchCreate }) => {
 };
 
 export default MatchSetupForm;
-
