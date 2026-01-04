@@ -334,6 +334,8 @@
     left: 1rem;
     font-size: 1.2rem;
     color: #4facfe;
+    z-index: 1;
+    pointer-events: none;
 }
 
 .search-box input {
@@ -900,30 +902,138 @@
     .player-header {
         flex-direction: column;
         text-align: center;
-        padding: 1.5rem;
+        padding: 1.25rem;
+        gap: 1rem;
     }
 
-    .player-info h1 {
+    .player-avatar {
+        width: 70px;
+        height: 70px;
         font-size: 2rem;
     }
 
+    .player-info h1 {
+        font-size: 1.75rem;
+    }
+
+    .player-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
     .stat-card {
-        padding: 1.5rem;
+        padding: 1.25rem;
+    }
+
+    .stat-card h2 {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .stat-icon {
+        font-size: 1.4rem;
+    }
+
+    .stat-rows {
+        gap: 0.5rem;
+    }
+
+    .stat-row {
+        padding: 0.6rem 0.75rem;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+    }
+
+    .stat-value {
+        font-size: 0.95rem;
+    }
+
+    .stat-row.highlight .stat-value {
+        font-size: 1.1rem;
+    }
+
+    .match-history-section {
+        padding: 1.25rem;
+    }
+
+    .match-history-section h2 {
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .match-card {
+        padding: 1rem;
     }
 
     .match-teams {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.25rem;
+        font-size: 0.95rem;
+    }
+
+    .match-date {
+        font-size: 0.8rem;
+    }
+
+    .match-result {
+        padding: 0.6rem 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .result-text {
+        font-size: 0.85rem;
+    }
+
+    .match-performance {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .performance-section h4 {
+        font-size: 0.75rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .performance-stats {
+        font-size: 0.85rem;
+    }
+
+    .out-badge,
+    .not-out-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+    }
+
+    .back-btn {
+        padding: 0.6rem 1.25rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .back-icon {
+        font-size: 1rem;
     }
 
     .podium {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 0.5rem;
     }
 
     .podium-item {
-        width: 100%;
+        width: calc(33.333% - 0.35rem);
+        min-width: 0;
+        padding: 0.75rem 0.5rem;
     }
 
     .top-performers-section {
@@ -954,44 +1064,51 @@
     }
 
     .podium-item {
-        padding: 1rem 0.75rem;
+        padding: 0.75rem 0.4rem;
     }
 
     .medal {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.35rem;
     }
 
     .player-avatar-podium {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .player-name-podium {
-        font-size: 0.95rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
         margin-bottom: 0.5rem;
     }
 
+    .player-name-podium {
+        font-size: 0.75rem;
+        margin-bottom: 0.35rem;
+        line-height: 1.2;
+    }
+
     .stat-value-large {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
 
     .stat-label-small {
-        font-size: 0.75rem;
+        font-size: 0.65rem;
     }
 
     .player-substats {
-        font-size: 0.75rem;
-        gap: 0.75rem;
+        font-size: 0.65rem;
+        gap: 0.5rem;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .player-substats span {
+        line-height: 1.3;
     }
 
     .rank-badge {
-        top: 0.5rem;
-        right: 0.5rem;
-        padding: 0.2rem 0.4rem;
-        font-size: 0.7rem;
+        top: 0.35rem;
+        right: 0.35rem;
+        padding: 0.15rem 0.35rem;
+        font-size: 0.65rem;
     }
 
     .top-performers-section {
