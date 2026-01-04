@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Match } from '../types/match';
 import { api } from '../services/api';
 import './LiveScoring.css';
@@ -11,6 +12,7 @@ interface LiveScoringProps {
 }
 
 const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMatch, readOnly = false }) => {
+    const navigate = useNavigate();
     const [viewInnings, setViewInnings] = useState<number>(match.currentInnings);
     const [loading, setLoading] = useState(false);
     const [selectedRuns, setSelectedRuns] = useState<number | null>(null);
@@ -538,9 +540,14 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                                 Innings {viewInnings}
                             </div>
                             {!readOnly && (
-                                <button onClick={handleShare} className="btn-share" title="Copy share link">
-                                    🔗 Share Score
-                                </button>
+                                <>
+                                    <button onClick={handleShare} className="btn-share" title="Copy share link">
+                                        🔗 Share Score
+                                    </button>
+                                    <button onClick={() => navigate('/playerSummary')} className="btn-share" title="View player statistics" style={{ marginLeft: '0.5rem' }}>
+                                        📊 Players
+                                    </button>
+                                </>
                             )}
                         </div>
 

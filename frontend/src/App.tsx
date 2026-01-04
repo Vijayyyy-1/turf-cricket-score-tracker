@@ -7,6 +7,8 @@ import './App.css';
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MatchView from './components/MatchView';
+import PlayerSummary from './components/PlayerSummary';
+import Admin from './components/Admin';
 
 function Home() {
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
@@ -102,6 +104,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/match/:id" element={<MatchView />} />
+          <Route path="/playerSummary" element={<PlayerSummary />} />
+          <Route path="/playerSummary/:name" element={<PlayerSummary />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </div>
     </Router>
