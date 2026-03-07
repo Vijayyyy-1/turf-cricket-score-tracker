@@ -65,6 +65,50 @@ router.get('/matches/:id', async (req, res) => {
     }
 });
 
+// Update batsmen (switch strike)
+router.post('/matches/:id/batsmen', async (req, res) => {
+    try {
+        const match = await Match.findById(req.params.id);
+        if (!match) {
+            return res.status(404).json({ error: 'Match not found' });
+        }
+
+        const { striker, nonStriker } = req.body;
+
+        if (!striker || !nonStriker) {
+            return res.status(400).json({ error: 'Both striker and non-striker are required' });
+        }
+
+        const currentInnings = match.innings[match.currentInnings - 1];
+        
+        // Validate that batsmen are registered in player stats
+        const strikerExists = currentInnings.playerStats.some(p => p.name === striker);
+        const nonStrikerExists = currentInnings.playerStats.some(p => p.name === nonStriker);
+        
+        if (!strikerExists || !nonStrikerExists) {
+            return res.status(400).json({ error: 'One or both batsmen are not registered in this match' });
+        }
+        
+        currentInnings.striker = striker;
+        currentInnings.nonStriker = nonStriker;
+
+        await match.save();
+
+        // Emit update to all viewers of this match
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`match-${match._id}`).emit('score-update', {
+                matchId: match._id,
+                match: match
+            });
+        }
+
+        res.json(match);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Record a ball
 router.post('/matches/:id/ball', async (req, res) => {
     try {
@@ -292,6 +336,16 @@ router.post('/matches/:id/ball', async (req, res) => {
         match.markModified('innings');
 
         await match.save();
+        
+        // Emit score update to all viewers of this match
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`match-${match._id}`).emit('score-update', {
+                matchId: match._id,
+                match: match
+            });
+        }
+        
         res.json(match);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -449,6 +503,16 @@ router.post('/matches/:id/undo', async (req, res) => {
         match.markModified('innings');
 
         await match.save();
+        
+        // Emit score update to all viewers of this match
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`match-${match._id}`).emit('score-update', {
+                matchId: match._id,
+                match: match
+            });
+        }
+        
         res.json(match);
     } catch (error) {
         res.status(500).json({ error: error.message });

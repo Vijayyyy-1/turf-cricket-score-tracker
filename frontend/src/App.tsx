@@ -30,10 +30,12 @@ function Home() {
         setCurrentMatch(match);
       } else {
         localStorage.removeItem('activeMatchId');
+        setError('The saved match has been completed.');
       }
     } catch (err) {
       console.error('Error loading match:', err);
       localStorage.removeItem('activeMatchId');
+      setError('Could not load the saved match. It may have been deleted.');
     } finally {
       setLoading(false);
     }

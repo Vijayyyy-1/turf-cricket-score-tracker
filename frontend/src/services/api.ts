@@ -108,4 +108,17 @@ export const api = {
         if (!response.ok) throw new Error('Failed to delete player');
         return response.json();
     },
+
+    // Update batsmen (striker and non-striker)
+    updateBatsmen: async (matchId: string, striker: string, nonStriker: string) => {
+        const response = await fetch(`${API_BASE_URL}/matches/${matchId}/batsmen`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ striker, nonStriker }),
+        });
+        if (!response.ok) throw new Error('Failed to update batsmen');
+        return response.json();
+    },
 };

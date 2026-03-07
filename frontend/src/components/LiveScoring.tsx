@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Match } from '../types/match';
 import { api } from '../services/api';
+import { initializeWebSocket, joinMatch, leaveMatch, onScoreUpdate } from '../services/websocket';
 import './LiveScoring.css';
 
 interface LiveScoringProps {
@@ -63,6 +64,33 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
         }
     }, [needsPlayerSetup, readOnly, match.status, showPlayerModal, strikerName, nonStrikerName, isInningsBreak]);
 
+    // WebSocket connection for real-time updates
+    useEffect(() => {
+        initializeWebSocket();
+        joinMatch(match._id);
+
+        const unsubscribe = onScoreUpdate((data: any) => {
+            if (data.matchId === match._id) {
+                console.log('📡 Received live score update:', data.match);
+                // Update the match with live data from server
+                if (onMatchUpdate) {
+                    onMatchUpdate(data.match);
+                }
+                // Also update local state if needed
+                const updatedInnings = data.match.innings[data.match.currentInnings - 1];
+                setViewInnings(data.match.currentInnings);
+                setStrikerName(updatedInnings.striker || '');
+                setNonStrikerName(updatedInnings.nonStriker || '');
+                setBowlerName(updatedInnings.currentBowler || '');
+            }
+        });
+
+        return () => {
+            leaveMatch(match._id);
+            unsubscribe();
+        };
+    }, [match._id, onMatchUpdate]);
+
     const handlePlayerSetup = () => {
         if (!strikerName.trim() || !nonStrikerName.trim()) {
             alert('Please enter both batsmen names');
@@ -97,10 +125,20 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
         }
     };
 
-    const switchStrike = () => {
+    const switchStrike = async () => {
         const temp = strikerName || activeInnings.striker || '';
-        setStrikerName(nonStrikerName || activeInnings.nonStriker || '');
-        setNonStrikerName(temp);
+        const newStriker = nonStrikerName || activeInnings.nonStriker || '';
+        const newNonStriker = temp;
+
+        try {
+            const updatedMatch = await api.updateBatsmen(match._id, newStriker, newNonStriker);
+            onMatchUpdate?.(updatedMatch);
+            setStrikerName(newStriker);
+            setNonStrikerName(newNonStriker);
+        } catch (error) {
+            console.error('Error switching strike:', error);
+            alert('Failed to switch strike. Please try again.');
+        }
     };
 
     const processBall = async (runs: number, isWide = false, isNoBall = false, isWicket = false, newBatsman?: string) => {
@@ -123,9 +161,10 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
             }
 
             const updatedMatch = await api.recordBall(match._id, ballData);
-            onMatchUpdate?.(updatedMatch);
-
-            // Update local state with server response
+            // Don't update state here - let WebSocket update handle it to avoid race condition
+            // onMatchUpdate will be called by WebSocket listener
+            
+            // Update local state with server response only for immediate UI feedback
             const updatedInnings = updatedMatch.innings[updatedMatch.currentInnings - 1];
             setStrikerName(updatedInnings.striker || '');
             setNonStrikerName(updatedInnings.nonStriker || '');
