@@ -441,6 +441,242 @@
     margin-bottom: 0.25rem;
 }
 
+/* Tabs Interface */
+.admin-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.tab-btn.active {
+    background: white;
+    color: #667eea;
+    border-color: white;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tab-icon {
+    font-size: 1.3rem;
+}
+
+/* Match-Specific Section */
+.match-specific-grid {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.match-selector-card {
+    grid-column: 1;
+}
+
+.match-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.match-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: white;
+    border: 2px solid #f0f0f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.match-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    transform: translateX(4px);
+}
+
+.match-item.selected {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.match-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.match-teams {
+    font-weight: 700;
+    color: #333;
+    font-size: 1.05rem;
+}
+
+.match-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.match-status {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge.ongoing {
+    background: #ffd93d;
+    color: #8b6f47;
+}
+
+.status-badge.completed {
+    background: #2ed573;
+    color: white;
+}
+
+.status-badge.not-started {
+    background: #a4d0e6;
+    color: #2c5aa0;
+}
+
+/* Innings Selector */
+.innings-selector {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e0e0e0;
+}
+
+.innings-selector label {
+    display: block;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.75rem;
+}
+
+.innings-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.innings-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.innings-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.innings-btn.active {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+
+.innings-icon {
+    font-size: 1.2rem;
+}
+
+/* Match Player Card */
+.match-player-card {
+    grid-column: 2 / span 1;
+}
+
+.match-players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.match-player-card .player-item {
+    padding: 0.75rem 1rem;
+    text-align: left;
+}
+
+/* Match Rename Form Card */
+.match-rename-form-card {
+    grid-column: 3 / span 1;
+}
+
+.match-rename-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.info-box {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #e7f3ff;
+    border: 2px solid #b3d9ff;
+    border-radius: 12px;
+}
+
+.info-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.info-content {
+    color: #004085;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.info-content strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
 /* Quick Actions */
 .quick-actions {
     display: flex;

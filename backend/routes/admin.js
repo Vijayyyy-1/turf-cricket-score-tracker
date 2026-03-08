@@ -225,4 +225,99 @@ router.get('/admin/players', async (req, res) => {
     }
 });
 
+// Rename a player within a specific match only
+router.post('/admin/rename-player-in-match', async (req, res) => {
+    try {
+        const { matchId, oldName, newName, inningsNumber } = req.body;
+
+        if (!matchId || !oldName || !newName || !inningsNumber) {
+            return res.status(400).json({ error: 'matchId, oldName, newName, and inningsNumber are required' });
+        }
+
+        if (oldName.trim() === newName.trim()) {
+            return res.status(400).json({ error: 'Old name and new name cannot be the same' });
+        }
+
+        const match = await Match.findById(matchId);
+        if (!match) {
+            return res.status(404).json({ error: 'Match not found' });
+        }
+
+        const innings = match.innings[inningsNumber - 1];
+        if (!innings) {
+            return res.status(400).json({ error: `Innings ${inningsNumber} not found` });
+        }
+
+        let updateCount = 0;
+
+        // Update striker
+        if (innings.striker === oldName) {
+            innings.striker = newName;
+            updateCount++;
+        }
+
+        // Update non-striker
+        if (innings.nonStriker === oldName) {
+            innings.nonStriker = newName;
+            updateCount++;
+        }
+
+        // Update current bowler
+        if (innings.currentBowler === oldName) {
+            innings.currentBowler = newName;
+            updateCount++;
+        }
+
+        // Update player stats
+        if (innings.playerStats) {
+            for (const player of innings.playerStats) {
+                if (player.name === oldName) {
+                    player.name = newName;
+                    updateCount++;
+                }
+            }
+        }
+
+        // Update bowler stats
+        if (innings.bowlerStats) {
+            for (const bowler of innings.bowlerStats) {
+                if (bowler.name === oldName) {
+                    bowler.name = newName;
+                    updateCount++;
+                }
+            }
+        }
+
+        // Update ball-by-ball records
+        if (innings.ballByBall) {
+            for (const ball of innings.ballByBall) {
+                if (ball.batsmanName === oldName) {
+                    ball.batsmanName = newName;
+                    updateCount++;
+                }
+                if (ball.bowlerName === oldName) {
+                    ball.bowlerName = newName;
+                    updateCount++;
+                }
+            }
+        }
+
+        if (updateCount === 0) {
+            return res.status(400).json({ error: `Player "${oldName}" not found in this innings` });
+        }
+
+        match.markModified('innings');
+        await match.save();
+
+        res.json({
+            success: true,
+            message: `Successfully renamed "${oldName}" to "${newName}" in innings ${inningsNumber}`,
+            updateCount
+        });
+    } catch (error) {
+        console.error('Error renaming player in match:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

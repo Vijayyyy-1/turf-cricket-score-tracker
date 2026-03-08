@@ -109,6 +109,19 @@ export const api = {
         return response.json();
     },
 
+    // Admin: Rename a player in a specific match only
+    renamePlayerInMatch: async (matchId: string, oldName: string, newName: string, inningsNumber: number) => {
+        const response = await fetch(`${API_BASE_URL}/admin/rename-player-in-match`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ matchId, oldName, newName, inningsNumber }),
+        });
+        if (!response.ok) throw new Error('Failed to rename player in match');
+        return response.json();
+    },
+
     // Update batsmen (striker and non-striker)
     updateBatsmen: async (matchId: string, striker: string, nonStriker: string) => {
         const response = await fetch(`${API_BASE_URL}/matches/${matchId}/batsmen`, {
