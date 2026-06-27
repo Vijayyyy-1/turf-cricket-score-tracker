@@ -47,6 +47,79 @@
     margin-right: 0.6rem;
 }
 
+/* Innings dropdown badge */
+.innings-badge-menu {
+    position: relative;
+    margin-right: 0.6rem;
+}
+
+.innings-badge-btn {
+    background: var(--primary-green);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.innings-badge-btn:hover {
+    background: var(--primary-green-dark, #1a7a3a);
+}
+
+.innings-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--bg-card, #1e2a38);
+    border: 1px solid var(--border-light, rgba(255,255,255,0.12));
+    border-radius: var(--radius-md, 8px);
+    overflow: hidden;
+    z-index: 200;
+    min-width: 130px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.innings-menu-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary, #e8eaf0);
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.innings-menu-item:hover:not(:disabled) {
+    background: rgba(255,255,255,0.07);
+}
+
+.innings-menu-item.active {
+    color: var(--primary-green);
+    font-weight: 700;
+    background: rgba(76,175,80,0.1);
+}
+
+.innings-menu-item:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.innings-menu-item + .innings-menu-item {
+    border-top: 1px solid var(--border-light, rgba(255,255,255,0.08));
+}
+
 .score-display {
     text-align: center;
     margin-bottom: var(--spacing-sm);
@@ -92,42 +165,131 @@
     color: var(--text-primary);
 }
 
-/* Chase Info (2nd Innings) */
-.chase-info-container {
-    margin: var(--spacing-lg) 0;
-    padding: var(--spacing-md);
-    background: hsla(142, 76%, 36%, 0.1);
-    border: 1px dashed var(--primary-green);
+/* Chase Card — 2nd innings hero */
+.chase-card {
+    position: relative;
+    padding: var(--spacing-md) var(--spacing-lg);
+    padding-top: calc(var(--spacing-md) + 4px);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: 10px;
+    margin: var(--spacing-xs) 0;
 }
 
-.target-badge {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-secondary);
+.chase-target-label {
+    position: absolute;
+    top: 10px;
+    right: var(--spacing-md);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.chase-equation {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.chase-off {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin: 0 6px;
+}
+
+.chase-equation-tight {
+    color: var(--warning);
+}
+
+.chase-equation-danger {
+    color: var(--danger);
+}
+
+.chase-rr-row {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    gap: 28px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+    width: 100%;
+    justify-content: center;
 }
 
-.chase-details {
-    text-align: center;
+.chase-rr-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
 }
 
-.needed-text {
-    font-size: 1.25rem;
-    font-weight: 600;
+.chase-rr-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+}
+
+.chase-rr-value {
+    font-size: 1.35rem;
+    font-weight: 800;
     color: var(--text-primary);
-    margin-bottom: var(--spacing-xs);
 }
 
-.rrr-text {
+.crr-ahead {
+    color: var(--primary-green-light);
+}
+
+.chase-rr-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--border-color);
+}
+
+/* Extras strip — 2nd innings flat row */
+.extras-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xs) 0;
+}
+
+.extras-strip-item {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 0 var(--spacing-md);
+}
+
+.extras-strip-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.extras-strip-value {
     font-size: 0.95rem;
+    font-weight: 700;
     color: var(--text-secondary);
+}
+
+.extras-strip-sep {
+    width: 1px;
+    height: 16px;
+    background: var(--border-color);
+    flex-shrink: 0;
 }
 
 .highlight {
@@ -257,22 +419,28 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    background: var(--bg-darker);
-    color: var(--text-secondary);
-    border: 1.5px solid var(--border-color);
+    background: #3a4a6b;
+    color: #c8d4e8;
+    border: 1.5px solid transparent;
     border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: background var(--transition-fast), border-color var(--transition-fast);
+    transition: background var(--transition-fast), box-shadow var(--transition-fast);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: inherit;
     padding: 0;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
+}
+
+.btn-extra:hover:not(:disabled) {
+    background: #4a5c80;
 }
 
 .btn-extra:active:not(:disabled) {
     transform: scale(0.95);
-    background: var(--bg-card);
+    background: #2e3d58;
+    box-shadow: none;
 }
 
 .btn-extra:disabled {
@@ -793,38 +961,43 @@
     margin: var(--spacing-md) 0;
 }
 
-/* Innings Selector */
+/* Innings Selector — slim segmented pill */
 .innings-selector {
     display: flex;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm) !important;
+    align-self: center;
+    background: var(--bg-darker);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    padding: 3px;
+    gap: 2px;
 }
 
 .btn-innings {
     flex: 1;
-    padding: var(--spacing-sm);
-    border: 1px solid var(--border-color);
-    background: var(--bg-darker);
-    color: var(--text-secondary);
-    border-radius: var(--radius-md);
+    padding: 5px 18px;
+    font-size: 0.75rem;
     font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: var(--radius-full);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: background var(--transition-fast), color var(--transition-fast);
+    white-space: nowrap;
+    font-family: inherit;
 }
 
-.btn-innings:hover:not(:disabled) {
-    border-color: var(--primary-green);
-    color: var(--primary-green-light);
+.btn-innings:hover:not(:disabled):not(.active) {
+    color: var(--text-secondary);
 }
 
 .btn-innings.active {
     background: var(--primary-green);
     color: white;
-    border-color: var(--primary-green);
 }
 
 .btn-innings:disabled {
-    opacity: 0.5;
+    opacity: 0.35;
     cursor: not-allowed;
 }
 

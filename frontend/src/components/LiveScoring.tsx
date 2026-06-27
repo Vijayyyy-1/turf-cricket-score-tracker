@@ -38,6 +38,8 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     const [pendingBall, setPendingBall] = useState<any>(null);
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [showInningsMenu, setShowInningsMenu] = useState(false);
+    const inningsBadgeRef = useRef<HTMLDivElement>(null);
     const [showWicketGif, setShowWicketGif] = useState(false);
     const [showFourGif, setShowFourGif] = useState(false);
     const [showSixGif, setShowSixGif] = useState(false);
@@ -88,6 +90,17 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showMenu]);
 
+    useEffect(() => {
+        if (!showInningsMenu) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (inningsBadgeRef.current && !inningsBadgeRef.current.contains(e.target as Node)) {
+                setShowInningsMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showInningsMenu]);
+
     const activeInnings = match.innings[viewInnings - 1] || match.innings[0];
     const totalOvers = activeInnings.overs + (activeInnings.balls / 6);
     const runRate = totalOvers > 0 ? (activeInnings.runs / totalOvers).toFixed(2) : '0.00';
@@ -116,6 +129,11 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     const requiredRunRate = (runsNeeded !== null && ballsRemaining > 0)
         ? ((runsNeeded / ballsRemaining) * 6).toFixed(2)
         : (runsNeeded !== null && runsNeeded <= 0 ? '0.00' : 'N/A');
+    const rrr = parseFloat(requiredRunRate);
+    const crr = parseFloat(runRate);
+    const chaseIsAhead = ballsRemaining > 0 && !isNaN(rrr) && crr >= rrr;
+    const chaseIsDanger = ballsRemaining > 0 && !isNaN(rrr) && rrr > 12;
+    const chaseIsTight = !chaseIsAhead && !chaseIsDanger && ballsRemaining > 0 && runsNeeded !== null && runsNeeded > 0;
 
     // Initialize local state from server data
     useEffect(() => {
@@ -772,9 +790,35 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                                 <h2 className="batting-team">{activeInnings.battingTeam}</h2>
                                 <p className="vs-text">vs {activeInnings.bowlingTeam}</p>
                             </div>
-                            <div className="innings-badge">
-                                Innings {viewInnings}
-                            </div>
+                            {(match.innings.length > 1 || match.status === 'completed') ? (
+                                <div className="innings-badge-menu" ref={inningsBadgeRef}>
+                                    <button
+                                        className="innings-badge innings-badge-btn"
+                                        onClick={() => setShowInningsMenu(v => !v)}
+                                    >
+                                        Innings {viewInnings} ▾
+                                    </button>
+                                    {showInningsMenu && (
+                                        <div className="innings-menu-dropdown">
+                                            <button
+                                                className={`innings-menu-item${viewInnings === 1 ? ' active' : ''}`}
+                                                onClick={() => { setViewInnings(1); setShowInningsMenu(false); }}
+                                            >
+                                                1st Innings
+                                            </button>
+                                            <button
+                                                className={`innings-menu-item${viewInnings === 2 ? ' active' : ''}`}
+                                                disabled={match.innings.length < 2 && match.status !== 'completed'}
+                                                onClick={() => { setViewInnings(2); setShowInningsMenu(false); }}
+                                            >
+                                                2nd Innings
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="innings-badge">Innings {viewInnings}</div>
+                            )}
                             <div className="header-menu" ref={menuRef}>
                                 <button
                                     className="menu-trigger"
@@ -907,61 +951,63 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                         )}
 
                         {isShowingSecondInnings && target !== null && (
-                            <div className="chase-info-container fade-in">
-                                <div className="target-badge">
-                                    Target: <span className="highlight">{target}</span>
+                            <div className="chase-card fade-in">
+                                <span className="chase-target-label">Target {target}</span>
+                                <div className={`chase-equation${chaseIsDanger ? ' chase-equation-danger' : chaseIsTight ? ' chase-equation-tight' : ''}`}>
+                                    {runsNeeded} <span className="chase-off">off</span> {ballsRemaining}
                                 </div>
-                                <div className="chase-details">
-                                    <p className="needed-text">
-                                        Need <span className="highlight">{runsNeeded}</span> runs in <span className="highlight">{ballsRemaining}</span> balls
-                                    </p>
-                                    <p className="rrr-text">
-                                        Required RR: <span className="highlight">{requiredRunRate}</span>
-                                    </p>
+                                <div className="chase-rr-row">
+                                    <div className="chase-rr-item">
+                                        <span className="chase-rr-label">CRR</span>
+                                        <span className={`chase-rr-value${chaseIsAhead ? ' crr-ahead' : ''}`}>{runRate}</span>
+                                    </div>
+                                    <div className="chase-rr-divider" />
+                                    <div className="chase-rr-item">
+                                        <span className="chase-rr-label">RRR</span>
+                                        <span className="chase-rr-value">{requiredRunRate}</span>
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        <div className="stats-grid">
-                            <div className="stat-item">
-                                <span className="stat-label">Run Rate</span>
-                                <span className="stat-value">{runRate}</span>
-                            </div>
-                            <div className="stat-item">
-                                <span className="stat-label">Extras</span>
-                                <span className="stat-value">
-                                    {activeInnings.extras.wides + activeInnings.extras.noBalls}
+                        {isShowingSecondInnings ? (
+                            <div className="extras-strip">
+                                <span className="extras-strip-item">
+                                    <span className="extras-strip-label">Extras</span>
+                                    <span className="extras-strip-value">{activeInnings.extras.wides + activeInnings.extras.noBalls}</span>
+                                </span>
+                                <span className="extras-strip-sep" />
+                                <span className="extras-strip-item">
+                                    <span className="extras-strip-label">Wides</span>
+                                    <span className="extras-strip-value">{activeInnings.extras.wides}</span>
+                                </span>
+                                <span className="extras-strip-sep" />
+                                <span className="extras-strip-item">
+                                    <span className="extras-strip-label">No Balls</span>
+                                    <span className="extras-strip-value">{activeInnings.extras.noBalls}</span>
                                 </span>
                             </div>
-                            <div className="stat-item">
-                                <span className="stat-label">Wides</span>
-                                <span className="stat-value">{activeInnings.extras.wides}</span>
+                        ) : (
+                            <div className="stats-grid">
+                                <div className="stat-item">
+                                    <span className="stat-label">Run Rate</span>
+                                    <span className="stat-value">{runRate}</span>
+                                </div>
+                                <div className="stat-item">
+                                    <span className="stat-label">Extras</span>
+                                    <span className="stat-value">{activeInnings.extras.wides + activeInnings.extras.noBalls}</span>
+                                </div>
+                                <div className="stat-item">
+                                    <span className="stat-label">Wides</span>
+                                    <span className="stat-value">{activeInnings.extras.wides}</span>
+                                </div>
+                                <div className="stat-item">
+                                    <span className="stat-label">No Balls</span>
+                                    <span className="stat-value">{activeInnings.extras.noBalls}</span>
+                                </div>
                             </div>
-                            <div className="stat-item">
-                                <span className="stat-label">No Balls</span>
-                                <span className="stat-value">{activeInnings.extras.noBalls}</span>
-                            </div>
-                        </div>
+                        )}
                     </div>
-
-                    {/* Innings Selector */}
-                    {(match.innings.length > 1 || match.status === 'completed') && (
-                        <div className="innings-selector card">
-                            <button
-                                onClick={() => setViewInnings(1)}
-                                className={`btn-innings ${viewInnings === 1 ? 'active' : ''}`}
-                            >
-                                1st Innings
-                            </button>
-                            <button
-                                onClick={() => setViewInnings(2)}
-                                disabled={match.innings.length < 2 && match.status !== 'completed'}
-                                className={`btn-innings ${viewInnings === 2 ? 'active' : ''}`}
-                            >
-                                2nd Innings
-                            </button>
-                        </div>
-                    )}
 
                     {/* Scoring Controls */}
                     {!readOnly && match.status === 'in_progress' && (
