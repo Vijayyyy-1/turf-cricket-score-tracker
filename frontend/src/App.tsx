@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import MatchSetupForm from './components/MatchSetupForm';
 import LiveScoring from './components/LiveScoring';
 import type { Match, MatchSetup } from './types/match';
@@ -11,64 +12,58 @@ import PlayerSummary from './components/PlayerSummary';
 import Admin from './components/Admin';
 
 function Home() {
-  const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const [activeMatchId, setActiveMatchId] = useState<string | null>(
+    () => localStorage.getItem('activeMatchId')
+  );
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const savedMatchId = localStorage.getItem('activeMatchId');
-    if (savedMatchId) {
-      loadMatch(savedMatchId);
-    }
-  }, []);
-
-  const loadMatch = async (id: string) => {
-    setLoading(true);
-    try {
-      const match = await api.getMatch(id);
-      if (match.status !== 'completed') {
-        setCurrentMatch(match);
-      } else {
+  const { data: currentMatch, isLoading } = useQuery<Match>({
+    queryKey: ['match', activeMatchId],
+    queryFn: () => api.getMatch(activeMatchId!),
+    enabled: !!activeMatchId,
+    staleTime: Infinity,
+    onSuccess: (match: Match) => {
+      if (match.status === 'completed') {
         localStorage.removeItem('activeMatchId');
+        setActiveMatchId(null);
         setError('The saved match has been completed.');
       }
-    } catch (err) {
-      console.error('Error loading match:', err);
+    },
+    onError: () => {
       localStorage.removeItem('activeMatchId');
+      setActiveMatchId(null);
       setError('Could not load the saved match. It may have been deleted.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  } as any);
 
-  const handleMatchCreate = async (setup: MatchSetup) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const match = await api.createMatch(setup);
-      setCurrentMatch(match);
+  const createMatch = useMutation({
+    mutationFn: (setup: MatchSetup) => api.createMatch(setup),
+    onSuccess: (match: Match) => {
       localStorage.setItem('activeMatchId', match._id);
-    } catch (err) {
-      console.error('Error creating match:', err);
+      queryClient.setQueryData(['match', match._id], match);
+      setActiveMatchId(match._id);
+      setError(null);
+    },
+    onError: () => {
       setError('Failed to create match. Please make sure the server is running.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
   const handleMatchUpdate = (match: Match) => {
-    setCurrentMatch(match);
+    queryClient.setQueryData(['match', match._id], match);
     if (match.status === 'completed') {
       localStorage.removeItem('activeMatchId');
     }
   };
 
   const handleEndMatch = () => {
-    setCurrentMatch(null);
+    setActiveMatchId(null);
     setError(null);
     localStorage.removeItem('activeMatchId');
   };
+
+  const loading = isLoading || createMatch.isPending;
 
   return (
     <>
@@ -87,7 +82,7 @@ function Home() {
       )}
 
       {!currentMatch ? (
-        <MatchSetupForm onMatchCreate={handleMatchCreate} />
+        <MatchSetupForm onMatchCreate={(setup) => createMatch.mutate(setup)} />
       ) : (
         <LiveScoring
           match={currentMatch}
