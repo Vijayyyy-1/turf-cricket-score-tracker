@@ -845,110 +845,108 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                             </div>
                         </div>
 
-                        <div className="score-display">
-                            <div className="main-score">
-                                <span className="runs">{activeInnings.runs}</span>
-                                {pendingRuns > 0 && (
-                                    <span className="pending-delta">+{pendingRuns}</span>
-                                )}
-                                <span className="separator">/</span>
-                                <span className="wickets">{activeInnings.wickets}</span>
-                                {pendingWickets > 0 && (
-                                    <span className="pending-delta pending-delta-wicket">+{pendingWickets}</span>
-                                )}
+                        <div className="score-header">
+                            {/* Row 1 — Big Picture: score anchored left, overs anchored right */}
+                            <div className="score-display">
+                                <div className="main-score">
+                                    <span className="runs">{activeInnings.runs}</span>
+                                    {pendingRuns > 0 && (
+                                        <span className="pending-delta">+{pendingRuns}</span>
+                                    )}
+                                    <span className="separator">/</span>
+                                    <span className="wickets">{activeInnings.wickets}</span>
+                                    {pendingWickets > 0 && (
+                                        <span className="pending-delta pending-delta-wicket">+{pendingWickets}</span>
+                                    )}
+                                </div>
+                                <div className="overs-display">
+                                    <span className="overs-label">Overs</span>
+                                    <span className="overs-value">
+                                        {activeInnings.overs}.{activeInnings.balls} / {match.oversPerInnings}
+                                    </span>
+                                    {pendingBallActions.length > 0 && (
+                                        <span className="overs-pending">+{pendingBallActions.length}</span>
+                                    )}
+                                </div>
                             </div>
-                            <div className="overs-display">
-                                <span className="overs-label">Overs:</span>
-                                <span className="overs-value">
-                                    {activeInnings.overs}.{activeInnings.balls} / {match.oversPerInnings}
-                                </span>
-                                {pendingBallActions.length > 0 && (
-                                    <span className="overs-pending">+{pendingBallActions.length}</span>
-                                )}
-                            </div>
-                        </div>
 
-                        {/* Current Players Display */}
-                        {(activeInnings.striker || activeInnings.nonStriker || activeInnings.currentBowler) && (
-                            <div className="current-players">
-                                {/* Batsmen row with FAB between them */}
-                                {(strikerName || activeInnings.striker || nonStrikerName || activeInnings.nonStriker) && (
-                                    <div className="batsmen-row">
-                                        {(strikerName || activeInnings.striker) && (() => {
-                                            const name = strikerName || activeInnings.striker!;
-                                            const stats = activeInnings.playerStats?.find(p => p.name === name);
-                                            return (
-                                                <div className="batsman-card striker-card">
-                                                    <span className="batsman-name">⭐ {name}</span>
-                                                    {stats && (
-                                                        <span className="batsman-score">
-                                                            <strong>{stats.runs}</strong>
-                                                            <span className="batsman-balls">({stats.balls})</span>
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
-
-                                        {!readOnly && (strikerName || activeInnings.striker) && (nonStrikerName || activeInnings.nonStriker) && (
-                                            <button
-                                                onClick={switchStrike}
-                                                disabled={loading}
-                                                className="fab-switch"
-                                                aria-label="Switch strike"
-                                            >
-                                                ⇄
-                                            </button>
-                                        )}
-
-                                        {(nonStrikerName || activeInnings.nonStriker) && (() => {
-                                            const name = nonStrikerName || activeInnings.nonStriker!;
-                                            const stats = activeInnings.playerStats?.find(p => p.name === name);
-                                            return (
-                                                <div className="batsman-card non-striker-card">
-                                                    <span className="batsman-name">{name}</span>
-                                                    {stats && (
-                                                        <span className="batsman-score">
-                                                            <strong>{stats.runs}</strong>
-                                                            <span className="batsman-balls">({stats.balls})</span>
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
-                                    </div>
-                                )}
-
-                                {/* Bowler row with labelled stats */}
-                                {(bowlerName || activeInnings.currentBowler) && (() => {
-                                    const name = bowlerName || activeInnings.currentBowler!;
-                                    const stats = activeInnings.bowlerStats?.find(b => b.name === name);
-                                    return (
-                                        <div className="bowler-row">
-                                            <span className="bowler-name">⚾ {name}</span>
-                                            {stats && (
-                                                <span className="bowler-stats">
-                                                    <span className="bowler-stat-item">
-                                                        <span className="stat-tag">O</span>
-                                                        {stats.overs}.{stats.balls}
+                            {/* Row 2 — Batters */}
+                            {(strikerName || activeInnings.striker || nonStrikerName || activeInnings.nonStriker) && (
+                                <div className="score-header-row batsmen-row">
+                                    {(strikerName || activeInnings.striker) && (() => {
+                                        const name = strikerName || activeInnings.striker!;
+                                        const stats = activeInnings.playerStats?.find(p => p.name === name);
+                                        return (
+                                            <div className="batsman-card striker-card">
+                                                <span className="batsman-name">⭐ {name}</span>
+                                                {stats && (
+                                                    <span className="batsman-score">
+                                                        <strong>{stats.runs}</strong>
+                                                        <span className="batsman-balls">({stats.balls})</span>
                                                     </span>
-                                                    <span className="bowler-stat-sep">·</span>
-                                                    <span className="bowler-stat-item">
-                                                        <span className="stat-tag">R</span>
-                                                        {stats.runs}
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {!readOnly && (strikerName || activeInnings.striker) && (nonStrikerName || activeInnings.nonStriker) && (
+                                        <button
+                                            onClick={switchStrike}
+                                            disabled={loading}
+                                            className="fab-switch"
+                                            aria-label="Switch strike"
+                                        >
+                                            ⇄
+                                        </button>
+                                    )}
+
+                                    {(nonStrikerName || activeInnings.nonStriker) && (() => {
+                                        const name = nonStrikerName || activeInnings.nonStriker!;
+                                        const stats = activeInnings.playerStats?.find(p => p.name === name);
+                                        return (
+                                            <div className="batsman-card non-striker-card">
+                                                <span className="batsman-name">{name}</span>
+                                                {stats && (
+                                                    <span className="batsman-score">
+                                                        <strong>{stats.runs}</strong>
+                                                        <span className="batsman-balls">({stats.balls})</span>
                                                     </span>
-                                                    <span className="bowler-stat-sep">·</span>
-                                                    <span className="bowler-stat-item">
-                                                        <span className="stat-tag">W</span>
-                                                        {stats.wickets}
-                                                    </span>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
+
+                            {/* Row 3 — Bowler */}
+                            {(bowlerName || activeInnings.currentBowler) && (() => {
+                                const name = bowlerName || activeInnings.currentBowler!;
+                                const stats = activeInnings.bowlerStats?.find(b => b.name === name);
+                                return (
+                                    <div className="score-header-row bowler-row">
+                                        <span className="bowler-name">⚾ {name}</span>
+                                        {stats && (
+                                            <span className="bowler-stats">
+                                                <span className="bowler-stat-item">
+                                                    <span className="stat-tag">O</span>
+                                                    {stats.overs}.{stats.balls}
                                                 </span>
-                                            )}
-                                        </div>
-                                    );
-                                })()}
-                            </div>
-                        )}
+                                                <span className="bowler-stat-sep">·</span>
+                                                <span className="bowler-stat-item">
+                                                    <span className="stat-tag">R</span>
+                                                    {stats.runs}
+                                                </span>
+                                                <span className="bowler-stat-sep">·</span>
+                                                <span className="bowler-stat-item">
+                                                    <span className="stat-tag">W</span>
+                                                    {stats.wickets}
+                                                </span>
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                        </div>
 
                         {isShowingSecondInnings && target !== null && (
                             <div className="chase-card fade-in">
@@ -1103,15 +1101,12 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                                 >
                                     Wicket
                                 </button>
-                            </div>
-
-                            <div className="undo-row">
                                 <button
                                     onClick={undoLastBall}
                                     disabled={loading || (activeInnings.ballByBall.length === 0 && pendingItems.filter(i => i.type === 'recordBall').length === 0)}
                                     className="btn-undo"
                                 >
-                                    ↩ Undo last ball
+                                    ↩ Undo
                                 </button>
                             </div>
                         </div>

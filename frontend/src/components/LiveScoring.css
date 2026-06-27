@@ -120,14 +120,20 @@
     border-top: 1px solid var(--border-light, rgba(255,255,255,0.08));
 }
 
-.score-display {
-    text-align: center;
-    margin-bottom: var(--spacing-sm);
-    padding: var(--spacing-sm) 0;
-    border-bottom: 1px solid var(--border-color);
+/* Three-row score header */
+.score-header {
     display: flex;
-    align-items: center;
-    justify-content: space-around;
+    flex-direction: column;
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Row 1 — Big Picture */
+.score-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0 10px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .main-score {
@@ -153,16 +159,28 @@
 }
 
 .overs-display {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
+    gap: 1px;
 }
 
 .overs-value {
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
     color: var(--text-primary);
+}
+
+/* Rows 2 & 3 — players, no card wrap */
+.score-header-row {
+    border-top: 1px solid var(--border-color);
+    margin-top: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
 }
 
 /* Chase Card — 2nd innings hero */
@@ -409,7 +427,7 @@
 /* Extras — Zone 2 */
 .extras-buttons {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
 }
 
@@ -477,32 +495,38 @@
     cursor: not-allowed;
 }
 
-/* Undo — Zone 3 (recovery, deprioritized) */
-.undo-row {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 6px;
-}
-
+/* Undo — solid pill target, sits in the 2×2 extras grid */
 .btn-undo {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 6px 8px;
-    border-radius: var(--radius-md);
+    height: 52px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
     font-family: inherit;
-    transition: color var(--transition-fast);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    letter-spacing: 0.03em;
+    transition: background var(--transition-fast), color var(--transition-fast);
+    padding: 0;
 }
 
 .btn-undo:hover:not(:disabled) {
-    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text-primary);
+}
+
+.btn-undo:active:not(:disabled) {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .btn-undo:disabled {
-    opacity: 0.3;
+    opacity: 0.25;
     cursor: not-allowed;
 }
 
@@ -831,8 +855,8 @@
         font-size: 1.3rem;
     }
 
-    .extras-buttons .btn {
-        height: 40px;
+    .extras-buttons > button {
+        height: 48px;
         font-size: 0.8rem;
     }
 
@@ -1060,23 +1084,12 @@
     }
 }
 
-/* Current Players Display */
-.current-players {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 10px var(--spacing-sm);
-    background: var(--bg-darker);
-    border-radius: var(--radius-md);
-    margin-top: var(--spacing-sm);
-    border: 1px solid var(--border-color);
-}
-
 /* Batsmen row — two cards with FAB between */
 .batsmen-row {
     display: flex;
     align-items: center;
     gap: 6px;
+    padding: 8px 0;
 }
 
 .batsman-card {
@@ -1154,10 +1167,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
-    background: hsla(24, 95%, 53%, 0.08);
-    border: 1px solid hsla(24, 95%, 53%, 0.25);
-    border-radius: var(--radius-md);
+    padding: 8px 0;
     gap: var(--spacing-sm);
 }
 
@@ -1237,8 +1247,10 @@
 }
 
 .over-dot-empty {
-    background: var(--bg-darker);
+    background: transparent;
     border-color: var(--border-color);
+    border-style: dashed;
+    opacity: 0.45;
 }
 
 .over-dot-empty .over-dot-label { display: none; }
@@ -1293,6 +1305,12 @@
     text-align: left;
     padding: var(--spacing-sm);
     background: var(--bg-darker);
+}
+
+.stats-table th:not(:first-child),
+.stats-table td:not(:first-child) {
+    text-align: center;
+}
     color: var(--text-muted);
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -1412,8 +1430,8 @@
         padding: var(--spacing-lg);
     }
 
-    .current-players {
-        flex-direction: column;
+    .score-header {
+        gap: 0;
     }
 
     .player-badge {
