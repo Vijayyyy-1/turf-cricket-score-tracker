@@ -1424,6 +1424,39 @@
     }
 }
 
+/* No Ball runs modal */
+.noball-runs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: var(--spacing-md) 0;
+}
+
+.noball-run-btn {
+    height: 64px;
+    font-size: 1.7rem;
+    font-weight: 700;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast), transform 80ms;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.noball-run-btn:active {
+    transform: scale(0.93);
+}
+
+.noball-cancel {
+    width: 100%;
+    margin-top: var(--spacing-sm);
+    color: var(--text-muted);
+}
+
 /* Wicket GIF overlay (viewer-only) */
 .wicket-gif-overlay {
     position: fixed;
@@ -1454,4 +1487,92 @@
         transform: scale(1);
         opacity: 1;
     }
+}
+
+/* Pending score delta (offline queue) */
+.pending-delta {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--warning);
+    opacity: 0.9;
+    margin-left: 4px;
+    vertical-align: super;
+    line-height: 1;
+}
+
+.pending-delta-wicket {
+    margin-left: 2px;
+    color: var(--danger);
+}
+
+.overs-pending {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--warning);
+    margin-left: 4px;
+    opacity: 0.85;
+}
+
+/* Offline / pending over-dot */
+.over-dot-pending {
+    border-style: dashed;
+    opacity: 0.65;
+}
+
+/* Pending sync label in controls header */
+.pending-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--warning);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Offline banner */
+.offline-banner {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 8px var(--spacing-md);
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-xs);
+}
+
+.offline-banner-warning {
+    background: hsla(45, 93%, 58%, 0.15);
+    border: 1px solid var(--warning);
+    color: var(--warning);
+}
+
+.offline-banner-syncing {
+    background: hsla(142, 76%, 36%, 0.12);
+    border: 1px solid var(--primary-green);
+    color: var(--primary-green-light);
+}
+
+/* Toast notification */
+.toast-message {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    padding: 10px 20px;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 500;
+    white-space: nowrap;
+    animation: fadeIn 0.2s ease-out;
+    max-width: 90vw;
+    text-align: center;
 }

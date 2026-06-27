@@ -1,5 +1,19 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+async function fetchWithTimeout(
+    input: RequestInfo,
+    init: RequestInit = {},
+    timeoutMs = 8_000,
+): Promise<Response> {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(input, { ...init, signal: controller.signal });
+    } finally {
+        clearTimeout(id);
+    }
+}
+
 export const api = {
     // Create a new match
     createMatch: async (matchData: any) => {
@@ -30,7 +44,7 @@ export const api = {
 
     // Record a ball
     recordBall: async (matchId: string, ballData: any) => {
-        const response = await fetch(`${API_BASE_URL}/matches/${matchId}/ball`, {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/matches/${matchId}/ball`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -43,7 +57,7 @@ export const api = {
 
     // Undo last ball
     undoLastBall: async (matchId: string) => {
-        const response = await fetch(`${API_BASE_URL}/matches/${matchId}/undo`, {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/matches/${matchId}/undo`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

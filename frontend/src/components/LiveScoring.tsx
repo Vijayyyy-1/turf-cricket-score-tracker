@@ -5,6 +5,12 @@ import type { Match } from '../types/match';
 import { api } from '../services/api';
 import { initializeWebSocket, joinMatch, leaveMatch, onScoreUpdate } from '../services/websocket';
 import wicketGif from '../assets/images/wicket.gif';
+import fourRunsGif from '../assets/images/four-runs.gif';
+import sixRunGif from '../assets/images/six-run.gif';
+import freeHitGif from '../assets/images/free-hit.gif';
+import { enqueue, dequeue, isNetworkError, getPendingForMatch } from '../services/offlineQueue';
+import { useOfflineQueue } from '../hooks/useOfflineQueue';
+import OfflineBanner from './OfflineBanner';
 import './LiveScoring.css';
 
 interface LiveScoringProps {
@@ -24,6 +30,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     const [showPlayerModal, setShowPlayerModal] = useState(false);
     const [showBowlerModal, setShowBowlerModal] = useState(false);
     const [showNewBatsmanModal, setShowNewBatsmanModal] = useState(false);
+    const [showNoBallModal, setShowNoBallModal] = useState(false);
     const [strikerName, setStrikerName] = useState('');
     const [nonStrikerName, setNonStrikerName] = useState('');
     const [bowlerName, setBowlerName] = useState('');
@@ -32,11 +39,43 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const [showWicketGif, setShowWicketGif] = useState(false);
+    const [showFourGif, setShowFourGif] = useState(false);
+    const [showSixGif, setShowSixGif] = useState(false);
+    const [showFreeHitGif, setShowFreeHitGif] = useState(false);
     const prevWicketsRef = useRef<{ inningsNum: number; wickets: number }>({
         inningsNum: match.currentInnings,
         wickets: match.innings[match.currentInnings - 1]?.wickets ?? 0,
     });
+    const prevBallCountRef = useRef<{ inningsNum: number; count: number }>({
+        inningsNum: match.currentInnings,
+        count: match.innings[match.currentInnings - 1]?.ballByBall?.length ?? 0,
+    });
     const wicketTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const fourTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const sixTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const freeHitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [toast, setToast] = useState<string | null>(null);
+
+    const { isOnline, isSyncing, pendingItems, refreshPending } = useOfflineQueue({
+        matchId: match._id,
+        onDrainComplete: (updatedMatch: Match) => {
+            queryClient.setQueryData(['match', match._id], updatedMatch);
+            onMatchUpdate?.(updatedMatch);
+            const drained = updatedMatch.innings[updatedMatch.currentInnings - 1];
+            setStrikerName(drained.striker || '');
+            setNonStrikerName(drained.nonStriker || '');
+            setBowlerName(drained.currentBowler || '');
+            setViewInnings(updatedMatch.currentInnings);
+        },
+        onDrainError: (skipped) =>
+            setToast(`${skipped} ball${skipped > 1 ? 's' : ''} could not be synced and were dropped.`),
+    });
+
+    useEffect(() => {
+        if (!toast) return;
+        const id = setTimeout(() => setToast(null), 4000);
+        return () => clearTimeout(id);
+    }, [toast]);
 
     useEffect(() => {
         if (!showMenu) return;
@@ -57,6 +96,11 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     const currentOverBalls = activeInnings.ballByBall
         .filter(b => !b.isWide && !b.isNoBall)
         .slice(activeInnings.overs * 6);
+
+    // Pending offline balls — used for score delta display
+    const pendingBallActions = pendingItems.filter(item => item.type === 'recordBall');
+    const pendingRuns = pendingBallActions.reduce((sum, item) => sum + (item.payload?.runs ?? 0), 0);
+    const pendingWickets = pendingBallActions.filter(item => item.payload?.isWicket).length;
 
     // Check if we need player/bowler setup
     const needsPlayerSetup = !activeInnings.striker || !activeInnings.nonStriker;
@@ -108,19 +152,36 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                 setNonStrikerName(updatedInnings.nonStriker || '');
                 setBowlerName(updatedInnings.currentBowler || '');
 
-                // Show wicket GIF for viewers only
+                // Show celebration GIFs for viewers only
                 const newInningsNum = data.match.currentInnings;
-                const newWickets = data.match.innings[newInningsNum - 1]?.wickets ?? 0;
-                if (
-                    readOnly &&
-                    newInningsNum === prevWicketsRef.current.inningsNum &&
-                    newWickets > prevWicketsRef.current.wickets
-                ) {
+                const newInnings = data.match.innings[newInningsNum - 1];
+                const newWickets = newInnings?.wickets ?? 0;
+                const newBallCount = newInnings?.ballByBall?.length ?? 0;
+
+                if (readOnly && newInningsNum === prevWicketsRef.current.inningsNum && newWickets > prevWicketsRef.current.wickets) {
                     if (wicketTimerRef.current) clearTimeout(wicketTimerRef.current);
                     setShowWicketGif(true);
                     wicketTimerRef.current = setTimeout(() => setShowWicketGif(false), 3000);
                 }
                 prevWicketsRef.current = { inningsNum: newInningsNum, wickets: newWickets };
+
+                if (readOnly && newInningsNum === prevBallCountRef.current.inningsNum && newBallCount > prevBallCountRef.current.count) {
+                    const lastBall = newInnings?.ballByBall?.[newBallCount - 1];
+                    if (lastBall?.isNoBall) {
+                        if (freeHitTimerRef.current) clearTimeout(freeHitTimerRef.current);
+                        setShowFreeHitGif(true);
+                        freeHitTimerRef.current = setTimeout(() => setShowFreeHitGif(false), 3000);
+                    } else if (lastBall?.runs === 4) {
+                        if (fourTimerRef.current) clearTimeout(fourTimerRef.current);
+                        setShowFourGif(true);
+                        fourTimerRef.current = setTimeout(() => setShowFourGif(false), 3000);
+                    } else if (lastBall?.runs === 6) {
+                        if (sixTimerRef.current) clearTimeout(sixTimerRef.current);
+                        setShowSixGif(true);
+                        sixTimerRef.current = setTimeout(() => setShowSixGif(false), 3000);
+                    }
+                }
+                prevBallCountRef.current = { inningsNum: newInningsNum, count: newBallCount };
             }
         });
 
@@ -140,7 +201,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
             setStrikerName(innings.striker || '');
             setNonStrikerName(innings.nonStriker || '');
         },
-        onError: () => alert('Failed to switch strike. Please try again.'),
+        onError: () => setToast('Failed to switch strike. Please try again.'),
     });
 
     const recordBallMutation = useMutation({
@@ -158,7 +219,14 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
             }
             setViewInnings(updatedMatch.currentInnings);
         },
-        onError: () => alert('Failed to record ball. Please try again.'),
+        onError: (error: Error, ballData: any) => {
+            if (isNetworkError(error)) {
+                enqueue({ matchId: match._id, type: 'recordBall', payload: ballData });
+                refreshPending();
+            } else {
+                setToast('Server error — ball was not recorded. Please try again.');
+            }
+        },
         onSettled: () => setTimeout(() => setSelectedRuns(null), 300),
     });
 
@@ -173,7 +241,14 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
             setBowlerName(updatedInnings.currentBowler || '');
             setViewInnings(updatedMatch.currentInnings);
         },
-        onError: () => alert('Failed to undo ball. Please try again.'),
+        onError: (error: Error) => {
+            if (isNetworkError(error)) {
+                enqueue({ matchId: match._id, type: 'undoLastBall' });
+                refreshPending();
+            } else {
+                setToast('Server error — undo failed. Please try again.');
+            }
+        },
     });
 
     const loading = recordBallMutation.isPending || undoMutation.isPending || switchStrikeMutation.isPending;
@@ -229,6 +304,42 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
             bowler: bowlerName || activeInnings.currentBowler,
         };
         if (newBatsman) ballData.newBatsman = newBatsman;
+        if (!navigator.onLine) {
+            enqueue({ matchId: match._id, type: 'recordBall', payload: ballData });
+            refreshPending();
+            setTimeout(() => setSelectedRuns(null), 300);
+
+            // Compute full strike rotation for this ball synchronously before any setState call
+            let newStriker = strikerName || activeInnings.striker || '';
+            let newNonStriker = nonStrikerName || activeInnings.nonStriker || '';
+
+            if (isWicket && newBatsman) {
+                // New batsman replaces the out striker
+                newStriker = newBatsman;
+            } else if (!isWide && runs % 2 !== 0) {
+                // Odd runs on a non-wide: batsmen crossed
+                [newStriker, newNonStriker] = [newNonStriker, newStriker];
+            }
+
+            // Check over completion on legal balls — read fresh queue after enqueue
+            if (!isWide && !isNoBall) {
+                const freshQueue = getPendingForMatch(match._id);
+                const legalPending = freshQueue.filter(
+                    item => item.type === 'recordBall' && !item.payload?.isWide && !item.payload?.isNoBall
+                ).length;
+                const totalLegalInOver = activeInnings.balls + legalPending;
+                if (totalLegalInOver > 0 && totalLegalInOver % 6 === 0) {
+                    // End of over: batsmen swap ends regardless of last ball
+                    [newStriker, newNonStriker] = [newNonStriker, newStriker];
+                    setBowlerName('');
+                    setShowBowlerModal(true);
+                }
+            }
+
+            setStrikerName(newStriker);
+            setNonStrikerName(newNonStriker);
+            return;
+        }
         recordBallMutation.mutate(ballData);
     };
 
@@ -250,8 +361,19 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     };
 
     const undoLastBall = () => {
+        const queued = pendingItems.filter(item => item.type === 'recordBall');
+        if (queued.length > 0) {
+            dequeue(queued[queued.length - 1].id);
+            refreshPending();
+            return;
+        }
+        if (!navigator.onLine) {
+            enqueue({ matchId: match._id, type: 'undoLastBall' });
+            refreshPending();
+            return;
+        }
         if (activeInnings.ballByBall.length === 0 && match.currentInnings === 1) {
-            alert('No balls to undo!');
+            setToast('No balls to undo!');
             return;
         }
         undoMutation.mutate();
@@ -323,10 +445,27 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
 
     return (
         <div className="live-scoring-container fade-in">
-            {/* Wicket GIF overlay — viewers only */}
+            <OfflineBanner isOnline={isOnline} isSyncing={isSyncing} pendingCount={pendingItems.length} />
+
+            {/* Celebration GIF overlays — viewers only */}
             {readOnly && showWicketGif && (
                 <div className="wicket-gif-overlay">
                     <img src={wicketGif} alt="Wicket!" className="wicket-gif" />
+                </div>
+            )}
+            {readOnly && showFourGif && (
+                <div className="wicket-gif-overlay">
+                    <img src={fourRunsGif} alt="Four!" className="wicket-gif" />
+                </div>
+            )}
+            {readOnly && showSixGif && (
+                <div className="wicket-gif-overlay">
+                    <img src={sixRunGif} alt="Six!" className="wicket-gif" />
+                </div>
+            )}
+            {readOnly && showFreeHitGif && (
+                <div className="wicket-gif-overlay">
+                    <img src={freeHitGif} alt="Free Hit!" className="wicket-gif" />
                 </div>
             )}
 
@@ -426,6 +565,36 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                         </div>
                         <button onClick={handleNewBatsmanSetup} className="btn btn-primary btn-lg">
                             Continue
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* No Ball Runs Modal */}
+            {showNoBallModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content card">
+                        <h2>🚫 No Ball</h2>
+                        <p className="modal-subtitle">How many runs did the batsman score?</p>
+                        <div className="noball-runs-grid">
+                            {[0, 1, 2, 3, 4, 6].map((runs) => (
+                                <button
+                                    key={runs}
+                                    className={`btn-run noball-run-btn ${runs === 4 || runs === 6 ? 'btn-run-boundary' : ''} ${runs === 0 ? 'btn-run-dot' : ''}`}
+                                    onClick={() => {
+                                        setShowNoBallModal(false);
+                                        processBall(runs, false, true, false);
+                                    }}
+                                >
+                                    {runs === 0 ? '•' : runs}
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            className="btn btn-ghost btn-sm noball-cancel"
+                            onClick={() => setShowNoBallModal(false)}
+                        >
+                            Cancel
                         </button>
                     </div>
                 </div>
@@ -635,14 +804,23 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                         <div className="score-display">
                             <div className="main-score">
                                 <span className="runs">{activeInnings.runs}</span>
+                                {pendingRuns > 0 && (
+                                    <span className="pending-delta">+{pendingRuns}</span>
+                                )}
                                 <span className="separator">/</span>
                                 <span className="wickets">{activeInnings.wickets}</span>
+                                {pendingWickets > 0 && (
+                                    <span className="pending-delta pending-delta-wicket">+{pendingWickets}</span>
+                                )}
                             </div>
                             <div className="overs-display">
                                 <span className="overs-label">Overs:</span>
                                 <span className="overs-value">
                                     {activeInnings.overs}.{activeInnings.balls} / {match.oversPerInnings}
                                 </span>
+                                {pendingBallActions.length > 0 && (
+                                    <span className="overs-pending">+{pendingBallActions.length}</span>
+                                )}
                             </div>
                         </div>
 
@@ -790,10 +968,19 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                         <div className="scoring-controls card">
                             <div className="controls-header">
                                 <h3 className="controls-title">
-                                    {loading ? (
+                                    {isSyncing ? (
+                                        <span className="saving-indicator">
+                                            <span className="btn-spinner" />
+                                            Syncing {pendingItems.length} ball{pendingItems.length !== 1 ? 's' : ''}...
+                                        </span>
+                                    ) : loading ? (
                                         <span className="saving-indicator">
                                             <span className="btn-spinner" />
                                             Saving...
+                                        </span>
+                                    ) : pendingItems.length > 0 ? (
+                                        <span className="pending-indicator">
+                                            {pendingItems.length} ball{pendingItems.length !== 1 ? 's' : ''} pending sync
                                         </span>
                                     ) : 'Record Ball'}
                                 </h3>
@@ -802,22 +989,31 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                             {/* Over progress dots */}
                             <div className="over-dots">
                                 <span className="over-dots-label">Ov {activeInnings.overs + 1}</span>
-                                {Array.from({ length: 6 }).map((_, i) => {
-                                    const ball = currentOverBalls[i];
-                                    const type = !ball
-                                        ? 'empty'
-                                        : ball.isWicket ? 'wicket'
-                                        : (ball.runs === 4 || ball.runs === 6) ? 'boundary'
-                                        : ball.runs > 0 ? 'run'
-                                        : 'dot';
-                                    return (
-                                        <div key={i} className={`over-dot over-dot-${type}`}>
-                                            <span className="over-dot-label">
-                                                {ball ? (ball.isWicket ? 'W' : ball.runs === 0 ? '·' : ball.runs) : ''}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
+                                {(() => {
+                                    const slotsUsed = currentOverBalls.length;
+                                    const pendingPayloads = pendingItems
+                                        .filter(item => item.type === 'recordBall')
+                                        .map(item => item.payload);
+                                    const pendingToShow = pendingPayloads.slice(0, Math.max(0, 6 - slotsUsed));
+                                    return Array.from({ length: 6 }).map((_, i) => {
+                                        const confirmed = currentOverBalls[i];
+                                        const pending = !confirmed ? pendingToShow[i - slotsUsed] : undefined;
+                                        const ball = confirmed || pending;
+                                        const isPending = !!pending && !confirmed;
+                                        const type = !ball ? 'empty'
+                                            : ball.isWicket ? 'wicket'
+                                            : (ball.runs === 4 || ball.runs === 6) ? 'boundary'
+                                            : ball.runs > 0 ? 'run'
+                                            : 'dot';
+                                        return (
+                                            <div key={i} className={`over-dot over-dot-${type}${isPending ? ' over-dot-pending' : ''}`}>
+                                                <span className="over-dot-label">
+                                                    {ball ? (ball.isWicket ? 'W' : ball.runs === 0 ? '·' : ball.runs) : ''}
+                                                </span>
+                                            </div>
+                                        );
+                                    });
+                                })()}
                             </div>
 
                             <div className={`runs-buttons${loading ? ' buttons-loading' : ''}`}>
@@ -844,7 +1040,11 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                                     Wide
                                 </button>
                                 <button
-                                    onClick={() => recordBall(0, false, true, false)}
+                                    onClick={() => {
+                                        if (!strikerName || !nonStrikerName) { setShowPlayerModal(true); return; }
+                                        if (!bowlerName && !activeInnings.currentBowler) { setShowBowlerModal(true); return; }
+                                        setShowNoBallModal(true);
+                                    }}
                                     disabled={loading}
                                     className="btn btn-extra"
                                 >
@@ -862,7 +1062,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                             <div className="undo-row">
                                 <button
                                     onClick={undoLastBall}
-                                    disabled={loading || activeInnings.ballByBall.length === 0}
+                                    disabled={loading || (activeInnings.ballByBall.length === 0 && pendingItems.filter(i => i.type === 'recordBall').length === 0)}
                                     className="btn-undo"
                                 >
                                     ↩ Undo last ball
@@ -972,7 +1172,7 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                                                             } ${ball.isWide || ball.isNoBall ? 'ball-extra' : ''}`}
                                                         title={`${ball.batsmanName || ''} - ${ball.bowlerName || ''}`}
                                                     >
-                                                        {ball.isWicket ? 'W' : ball.isWide ? 'WD' : ball.isNoBall ? 'NB' : ball.runs}
+                                                        {ball.isWicket ? 'W' : ball.isWide ? 'WD' : ball.isNoBall ? `NB${ball.runs > 0 ? `+${ball.runs}` : ''}` : ball.runs}
                                                     </div>
                                                 ))}
                                             </div>
@@ -983,6 +1183,9 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                         </div>
                     )}
                 </>
+            )}
+            {toast && (
+                <div className="toast-message" role="alert">{toast}</div>
             )}
         </div>
     );
