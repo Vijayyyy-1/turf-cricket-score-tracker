@@ -1196,13 +1196,19 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                                         return sum + runs;
                                     }, 0);
                                     const overWickets = overBalls.filter(b => b.isWicket).length;
+                                    const overBowler = overBalls[0]?.bowlerName;
 
                                     return (
                                         <div key={overNum} className="over-row">
                                             <div className="over-info">
-                                                <span className="over-number">Over {overNum}</span>
+                                                <span className="over-number">
+                                                    Over {overNum}
+                                                    {overBowler && (
+                                                        <span className="over-bowler"> · {overBowler}</span>
+                                                    )}
+                                                </span>
                                                 <span className="over-summary">
-                                                    {overRuns} runs, {overWickets} {overWickets === 1 ? 'wicket' : 'wickets'}
+                                                    {overRuns} R&nbsp;&nbsp;|&nbsp;&nbsp;{overWickets} W
                                                 </span>
                                             </div>
                                             <div className="over-balls">
