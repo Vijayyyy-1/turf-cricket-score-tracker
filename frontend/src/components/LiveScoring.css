@@ -554,8 +554,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-darker);
-    border: 1px solid var(--border-color);
+    background: #2a2a35;
+    border: none;
     border-radius: var(--radius-md);
     font-weight: 700;
     font-size: 1.1rem;
@@ -563,15 +563,14 @@
 }
 
 .ball-wicket {
-    background: var(--danger);
+    background: hsla(0, 84%, 55%, 0.9);
     color: white;
-    border-color: var(--danger);
+    border-radius: 50%;
 }
 
 .ball-boundary {
     background: var(--primary-green);
     color: white;
-    border-color: var(--primary-green-light);
 }
 
 /* Overs History */
@@ -602,9 +601,17 @@
     color: var(--primary-green-light);
 }
 
+.over-bowler {
+    font-weight: 400;
+    color: var(--text-muted);
+    font-size: 0.85em;
+}
+
 .over-summary {
     font-size: 0.875rem;
-    color: var(--text-muted);
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
 }
 
 .over-balls {
@@ -620,9 +627,8 @@
 }
 
 .ball-extra {
-    background: var(--bg-card);
+    background: hsla(45, 93%, 47%, 0.12);
     color: var(--warning);
-    border-color: var(--warning);
 }
 
 /* Match Result */
@@ -1235,9 +1241,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1.5px solid var(--border-color);
-    background: var(--bg-darker);
-    transition: background 0.15s, border-color 0.15s;
+    border: none;
+    background: #2a2a35;
+    transition: background 0.15s;
 }
 
 .over-dot-label {
@@ -1248,35 +1254,30 @@
 
 .over-dot-empty {
     background: transparent;
-    border-color: var(--border-color);
-    border-style: dashed;
+    border: 1.5px dashed var(--border-color);
     opacity: 0.45;
 }
 
 .over-dot-empty .over-dot-label { display: none; }
 
 .over-dot-dot {
-    background: hsla(220, 26%, 22%, 1);
-    border-color: var(--border-light);
+    background: #2a2a35;
     color: var(--text-muted);
 }
 
 .over-dot-run {
-    background: hsla(142, 76%, 36%, 0.18);
-    border-color: var(--primary-green);
+    background: hsla(142, 76%, 36%, 0.22);
     color: var(--primary-green-light);
 }
 
 .over-dot-boundary {
-    background: hsla(142, 76%, 36%, 0.35);
-    border-color: var(--primary-green-light);
+    background: hsla(142, 76%, 36%, 0.45);
     color: white;
 }
 
 .over-dot-wicket {
-    background: hsla(0, 84%, 60%, 0.2);
-    border-color: var(--danger);
-    color: var(--danger);
+    background: hsla(0, 84%, 55%, 0.85);
+    color: white;
 }
 
 /* Keep old badge classes so nothing else breaks */
