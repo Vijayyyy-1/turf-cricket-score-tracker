@@ -1,34 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import type { Match } from '../types/match';
 import LiveScoring from './LiveScoring';
 
 const MatchView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const [match, setMatch] = useState<Match | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
 
-    useEffect(() => {
-        if (id) {
-            loadMatch(id);
-        }
-    }, [id]);
+    const { data: match, isLoading, isError } = useQuery<Match>({
+        queryKey: ['match', id],
+        queryFn: () => api.getMatch(id!),
+        enabled: !!id,
+        staleTime: Infinity,
+    });
 
-    const loadMatch = async (matchId: string) => {
-        try {
-            const data = await api.getMatch(matchId);
-            setMatch(data);
-        } catch (err) {
-            console.error('Error loading match:', err);
-            setError('Could not find this match. It may have been deleted.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="loading-overlay">
                 <div className="loading-spinner"></div>
@@ -37,11 +25,11 @@ const MatchView: React.FC = () => {
         );
     }
 
-    if (error || !match) {
+    if (isError || !match) {
         return (
             <div className="error-container fade-in" style={{ textAlign: 'center', padding: '50px' }}>
                 <h2>⚠️ Error</h2>
-                <p>{error}</p>
+                <p>Could not find this match. It may have been deleted.</p>
                 <Link to="/" className="btn btn-primary" style={{ marginTop: '20px', display: 'inline-block' }}>
                     Go to Home
                 </Link>
@@ -57,7 +45,7 @@ const MatchView: React.FC = () => {
             <LiveScoring
                 match={match}
                 readOnly={true}
-                onMatchUpdate={(updatedMatch) => setMatch(updatedMatch)}
+                onMatchUpdate={(updatedMatch) => queryClient.setQueryData(['match', id], updatedMatch)}
             />
         </div>
     );

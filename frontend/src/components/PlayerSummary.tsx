@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import './PlayerSummary.css';
 
@@ -67,50 +68,21 @@ interface PlayerDetail extends Player {
 function PlayerSummary() {
     const { name } = useParams<{ name?: string }>();
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [players, setPlayers] = useState<Player[]>([]);
-    const [selectedPlayer, setSelectedPlayer] = useState<PlayerDetail | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState<'runs' | 'wickets' | 'matches'>('runs');
 
-    useEffect(() => {
-        loadPlayers();
-    }, []);
+    const { data: players = [], isLoading: loadingPlayers, isError: playersError, refetch: refetchPlayers } = useQuery<Player[]>({
+        queryKey: ['players'],
+        queryFn: () => api.getAllPlayers(),
+        staleTime: 60_000,
+    });
 
-    useEffect(() => {
-        if (name) {
-            loadPlayerDetails(name);
-        }
-    }, [name]);
-
-    const loadPlayers = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await api.getAllPlayers();
-            setPlayers(data);
-        } catch (err) {
-            console.error('Error loading players:', err);
-            setError('Failed to load player statistics');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const loadPlayerDetails = async (playerName: string) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await api.getPlayer(playerName);
-            setSelectedPlayer(data);
-        } catch (err) {
-            console.error('Error loading player details:', err);
-            setError('Failed to load player details');
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { data: selectedPlayer, isLoading: loadingDetail, isError: detailError } = useQuery<PlayerDetail>({
+        queryKey: ['player', name],
+        queryFn: () => api.getPlayer(name!),
+        enabled: !!name,
+        staleTime: 60_000,
+    });
 
     const handlePlayerClick = (playerName: string) => {
         navigate(`/playerSummary/${encodeURIComponent(playerName)}`);
@@ -118,7 +90,6 @@ function PlayerSummary() {
 
     const handleBackToList = () => {
         navigate('/playerSummary');
-        setSelectedPlayer(null);
     };
 
     const filteredPlayers = players.filter(player =>
@@ -138,7 +109,7 @@ function PlayerSummary() {
         }
     });
 
-    if (loading) {
+    if (loadingPlayers || (name && loadingDetail)) {
         return (
             <div className="player-summary-container">
                 <div className="loading-state">
@@ -149,13 +120,13 @@ function PlayerSummary() {
         );
     }
 
-    if (error) {
+    if (playersError || (name && detailError)) {
         return (
             <div className="player-summary-container">
                 <div className="error-state">
                     <span className="error-icon">⚠️</span>
-                    <p>{error}</p>
-                    <button onClick={loadPlayers} className="retry-btn">Retry</button>
+                    <p>{name ? 'Failed to load player details' : 'Failed to load player statistics'}</p>
+                    <button onClick={() => refetchPlayers()} className="retry-btn">Retry</button>
                 </div>
             </div>
         );
