@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Match } from '../types/match';
 import { api } from '../services/api';
 import { initializeWebSocket, joinMatch, leaveMatch, onScoreUpdate } from '../services/websocket';
+import wicketGif from '../assets/images/wicket.gif';
 import './LiveScoring.css';
 
 interface LiveScoringProps {
@@ -30,6 +31,12 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
     const [pendingBall, setPendingBall] = useState<any>(null);
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [showWicketGif, setShowWicketGif] = useState(false);
+    const prevWicketsRef = useRef<{ inningsNum: number; wickets: number }>({
+        inningsNum: match.currentInnings,
+        wickets: match.innings[match.currentInnings - 1]?.wickets ?? 0,
+    });
+    const wicketTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (!showMenu) return;
@@ -100,6 +107,20 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
                 setStrikerName(updatedInnings.striker || '');
                 setNonStrikerName(updatedInnings.nonStriker || '');
                 setBowlerName(updatedInnings.currentBowler || '');
+
+                // Show wicket GIF for viewers only
+                const newInningsNum = data.match.currentInnings;
+                const newWickets = data.match.innings[newInningsNum - 1]?.wickets ?? 0;
+                if (
+                    readOnly &&
+                    newInningsNum === prevWicketsRef.current.inningsNum &&
+                    newWickets > prevWicketsRef.current.wickets
+                ) {
+                    if (wicketTimerRef.current) clearTimeout(wicketTimerRef.current);
+                    setShowWicketGif(true);
+                    wicketTimerRef.current = setTimeout(() => setShowWicketGif(false), 3000);
+                }
+                prevWicketsRef.current = { inningsNum: newInningsNum, wickets: newWickets };
             }
         });
 
@@ -302,6 +323,13 @@ const LiveScoring: React.FC<LiveScoringProps> = ({ match, onMatchUpdate, onEndMa
 
     return (
         <div className="live-scoring-container fade-in">
+            {/* Wicket GIF overlay — viewers only */}
+            {readOnly && showWicketGif && (
+                <div className="wicket-gif-overlay">
+                    <img src={wicketGif} alt="Wicket!" className="wicket-gif" />
+                </div>
+            )}
+
             {/* Player Setup Modal */}
             {showPlayerModal && (
                 <div className="modal-overlay">
